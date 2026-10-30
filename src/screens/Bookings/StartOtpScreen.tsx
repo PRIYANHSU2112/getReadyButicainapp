@@ -1,0 +1,396 @@
+import React, {useState} from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  StatusBar,
+} from "react-native";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
+import {NativeStackScreenProps} from "@react-navigation/native-stack";
+import {RootStackParamList} from "../../navigation/types";
+import {useBooking} from "../../context/BookingContext";
+import {toast} from "../../components/common/Toast";
+
+type Props = NativeStackScreenProps<RootStackParamList, "StartOtp">;
+
+export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
+  const insets = useSafeAreaInsets();
+  const {bookingId} = route.params;
+  const {verifyStartOtp} = useBooking();
+
+  const [otp, setOtp] = useState<string>("");
+  const [verifying, setVerifying] = useState(false);
+
+  const handleKeyPress = (val: string) => {
+    if (otp.length < 4) {
+      setOtp(prev => prev + val);
+    }
+  };
+
+  const handleBackspace = () => {
+    setOtp(prev => prev.slice(0, -1));
+  };
+
+  const handleClear = () => {
+    setOtp("");
+  };
+
+  const handleVerify = async () => {
+    if (verifying) return;
+    if (otp.length !== 4) {
+      Alert.alert("Incomplete OTP", "Please enter the 4-digit start OTP shared by the customer.");
+      return;
+    }
+    setVerifying(true);
+    const ok = await verifyStartOtp(bookingId, otp);
+    setVerifying(false);
+    if (ok) {
+      toast.success("Service started");
+      navigation.navigate("ServiceCheckIn", {bookingId});
+    } else {
+      setOtp("");
+    }
+  };
+
+  const digits = [
+    otp[0] || "",
+    otp[1] || "",
+    otp[2] || "",
+    otp[3] || "",
+  ];
+
+  return (
+    <View style={styles.screenContainer}>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Header matching Home-9.png */}
+      <View style={[styles.headerContainer, {paddingTop: Math.max(insets.top, 14)}]}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.backCircleBtn}>
+          <Text style={styles.backChevron}>‹</Text>
+        </TouchableOpacity>
+
+        <Text maxFontSizeMultiplier={1.3} style={styles.headerTitle}>
+          Service Check In
+        </Text>
+
+        <View style={styles.headerRightPlaceholder} />
+      </View>
+
+      <View style={styles.contentContainer}>
+        {/* Shield Icon Badge matching Home-9.png */}
+        <View style={styles.shieldBadgeCircle}>
+          <Text style={styles.shieldIcon}>🛡️</Text>
+        </View>
+
+        {/* Heading & Subtitle */}
+        <Text maxFontSizeMultiplier={1.3} style={styles.screenHeading}>
+          Enter Customer Start OTP
+        </Text>
+        <Text maxFontSizeMultiplier={1.3} style={styles.screenSubtitle}>
+          Ask the customer for their 4-digit OTP to begin the service.
+        </Text>
+
+        {/* OTP Input Label */}
+        <Text style={styles.enterOtpLabel}>Enter OTP</Text>
+
+        {/* 4 Digit Boxes matching Home-9.png */}
+        <View style={styles.otpBoxesRow}>
+          {digits.map((digit, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.otpBox,
+                digit !== "" && styles.otpBoxFilled,
+              ]}>
+              <Text style={styles.otpDigitText}>{digit || "•"}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Lock Pill Badge matching Home-9.png */}
+        <View style={styles.lockBadgePill}>
+          <Text style={styles.lockIcon}>🔒</Text>
+          <Text style={styles.lockText}>Service cannot start until verified</Text>
+        </View>
+      </View>
+
+      {/* Custom Keypad Bottom Sheet matching Home-9.png */}
+      <View
+        style={[
+          styles.keypadContainer,
+          {paddingBottom: Math.max(insets.bottom, 16)},
+        ]}>
+        <View style={styles.keypadGrabber} />
+
+        <View style={styles.keypadGrid}>
+          {/* Row 1 */}
+          <View style={styles.keypadRow}>
+            {["1", "2", "3"].map(num => (
+              <TouchableOpacity
+                key={num}
+                activeOpacity={0.7}
+                onPress={() => handleKeyPress(num)}
+                style={styles.keypadBtn}>
+                <Text style={styles.keypadNumberText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Row 2 */}
+          <View style={styles.keypadRow}>
+            {["4", "5", "6"].map(num => (
+              <TouchableOpacity
+                key={num}
+                activeOpacity={0.7}
+                onPress={() => handleKeyPress(num)}
+                style={styles.keypadBtn}>
+                <Text style={styles.keypadNumberText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Row 3 */}
+          <View style={styles.keypadRow}>
+            {["7", "8", "9"].map(num => (
+              <TouchableOpacity
+                key={num}
+                activeOpacity={0.7}
+                onPress={() => handleKeyPress(num)}
+                style={styles.keypadBtn}>
+                <Text style={styles.keypadNumberText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Row 4: Clear, 0, Backspace */}
+          <View style={styles.keypadRow}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleClear}
+              style={styles.keypadBtn}>
+              <Text style={styles.keypadSpecialText}>Clear</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => handleKeyPress("0")}
+              style={styles.keypadBtn}>
+              <Text style={styles.keypadNumberText}>0</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleBackspace}
+              style={styles.keypadBtn}>
+              <Text style={styles.keypadIconText}>⌫</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Verify Action Button */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={handleVerify}
+          style={styles.verifyBtn}>
+          <Text style={styles.verifyBtnText}>Verify & Start Service</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  backCircleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backChevron: {
+    fontSize: 24,
+    lineHeight: 24,
+    color: "#E11D48",
+    fontWeight: "700",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111827",
+    letterSpacing: -0.3,
+  },
+  headerRightPlaceholder: {
+    width: 38,
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 28,
+  },
+  shieldBadgeCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#ECFDF5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  shieldIcon: {
+    fontSize: 24,
+  },
+  screenHeading: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  screenSubtitle: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: "#6B7280",
+    textAlign: "center",
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  enterOtpLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 12,
+  },
+  otpBoxesRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 20,
+  },
+  otpBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  otpBoxFilled: {
+    borderColor: "#114B3E",
+    backgroundColor: "#F0FDF4",
+  },
+  otpDigitText: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+  },
+  lockBadgePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  lockIcon: {
+    fontSize: 12,
+    marginRight: 6,
+  },
+  lockText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  keypadContainer: {
+    backgroundColor: "#F3F4F6",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  keypadGrabber: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#9CA3AF",
+    alignSelf: "center",
+    marginBottom: 14,
+  },
+  keypadGrid: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  keypadRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  keypadBtn: {
+    flex: 1,
+    height: 48,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  keypadNumberText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111827",
+  },
+  keypadSpecialText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#4B5563",
+  },
+  keypadIconText: {
+    fontSize: 16,
+    color: "#0D9488",
+    fontWeight: "700",
+  },
+  verifyBtn: {
+    backgroundColor: "#114B3E",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#114B3E",
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  verifyBtnText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.2,
+  },
+});

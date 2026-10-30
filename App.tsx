@@ -1,45 +1,36 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React from "react";
+import {StatusBar} from "react-native";
+import {SafeAreaProvider} from "react-native-safe-area-context";
+import {QueryClientProvider} from "@tanstack/react-query";
+import {ThemeProvider} from "./src/theme";
+import {queryClient} from "./src/services/queryClient";
+import {AuthProvider} from "./src/context/AuthContext";
+import {PartnerProvider} from "./src/context/PartnerContext";
+import {BookingProvider} from "./src/context/BookingContext";
+import {LocationProvider} from "./src/context/LocationContext";
+import {RootNavigator} from "./src/navigation/RootNavigator";
+import {ToastHost} from "./src/components/common/Toast";
+import {LiveSync} from "./src/components/common/LiveSync";
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <PartnerProvider>
+              <BookingProvider>
+                <LocationProvider>
+                  <StatusBar barStyle="dark-content" {...({backgroundColor: "transparent", translucent: true} as any)} />
+                  <RootNavigator />
+                  <LiveSync />
+                  <ToastHost />
+                </LocationProvider>
+              </BookingProvider>
+            </PartnerProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;

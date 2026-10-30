@@ -1,0 +1,19 @@
+Create a production-ready React Native UI following an industry-standard design and engineering plan:
+
+1. Premium, clean, consistent UI with a reusable design system.
+2. Fully responsive for all Android/iOS devices, screen sizes, densities, notches, Safe Area and keyboards.
+3. TypeScript + scalable component architecture with maximum practical reusability.
+4. Separate UI, business logic and data/API logic.
+5. High performance: minimize re-renders, optimize lists/images, avoid unnecessary state and JS-thread blocking.
+6. Smooth 60-FPS animations using Reanimated/Gesture Handler where appropriate.
+7. Complete UX states: loading, skeleton, empty, error, retry, offline, refresh, disabled and slow-network states.
+8. Accessibility: screen readers, touch targets, contrast, dynamic fonts and reduced-motion support.
+9. Proper navigation, deep linking, Android back handling and state preservation.
+10. Handle all edge cases: long text, missing images, large datasets, rapid taps, API failures and different devices.
+11. Avoid deprecated APIs, unnecessary dependencies, magic numbers, duplicated code and over-engineering.
+12. Optimize real-time updates so Socket.IO/chat/live events update only affected components instead of causing full-screen re-renders.
+13. Follow current React Native best practices and production-grade security/performance standards.
+14. Before coding, analyze requirements, identify UX/performance/responsiveness issues and choose the appropriate architecture.
+15. Deliver reusable components, hooks, theme/design tokens, navigation integration and clean maintainable code.
+
+Goal: Production-ready, scalable, reusable, responsive, accessible, high-performance React Native UI with smooth animations and no obvious missing states or edge cases.
