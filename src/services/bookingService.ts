@@ -32,5 +32,10 @@ export const bookingService = {
   completeItem: (bookingId: string, itemId: string, notes?: string) =>
     apiClient.post<any>(`/bookings/${bookingId}/items/${itemId}/complete`, {notes}),
   complete: (bookingId: string) => apiClient.post<any>(`/bookings/${bookingId}/complete`),
+  // Mid-visit extras: the customer approves in their app; prices come from the catalog on the server.
+  proposeAddOns: (bookingId: string, serviceIds: string[]) =>
+    apiClient.post<any>(`/bookings/${bookingId}/add-ons`, {serviceIds}),
+  // Customer paid the add-on amount in cash; unlocks the End OTP.
+  addOnCashCollected: (bookingId: string) => apiClient.post<any>(`/bookings/${bookingId}/add-ons/cash-collected`),
   cancel: (bookingId: string, reason: string) => apiClient.post<any>(`/bookings/${bookingId}/cancel`, {reason}),
 };

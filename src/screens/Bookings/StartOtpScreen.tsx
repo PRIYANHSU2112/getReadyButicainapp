@@ -12,6 +12,7 @@ import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
 import {useBooking} from "../../context/BookingContext";
 import {toast} from "../../components/common/Toast";
+import {useBookingDetail} from "../../hooks/queries";
 
 type Props = NativeStackScreenProps<RootStackParamList, "StartOtp">;
 
@@ -19,6 +20,8 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
   const insets = useSafeAreaInsets();
   const {bookingId} = route.params;
   const {verifyStartOtp} = useBooking();
+  // Shows when the customer has tapped "I'M READY" in their app.
+  const customerReady = useBookingDetail(bookingId, 10000).data?.customerReady ?? false;
 
   const [otp, setOtp] = useState<string>("");
   const [verifying, setVerifying] = useState(false);
@@ -51,6 +54,7 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
       navigation.navigate("ServiceCheckIn", {bookingId});
     } else {
       setOtp("");
+      toast.error("Wrong OTP. Ask the customer to check the code in their app.");
     }
   };
 
@@ -96,6 +100,12 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
         <Text maxFontSizeMultiplier={1.3} style={styles.screenSubtitle}>
           Ask the customer for their 4-digit OTP to begin the service.
         </Text>
+
+        <View style={[styles.readyPill, customerReady ? styles.readyPillOn : styles.readyPillOff]}>
+          <Text style={[styles.readyPillText, {color: customerReady ? "#065F46" : "#6B7280"}]}>
+            {customerReady ? "✓ Customer is ready (workspace prepared)" : "Customer hasn't marked ready yet"}
+          </Text>
+        </View>
 
         {/* OTP Input Label */}
         <Text style={styles.enterOtpLabel}>Enter OTP</Text>
@@ -276,6 +286,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 20,
     marginBottom: 24,
+  },
+  readyPill: {
+    alignSelf: "center",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginTop: 12,
+    marginBottom: 4,
+    borderWidth: 1,
+  },
+  readyPillOn: {
+    backgroundColor: "#ECFDF5",
+    borderColor: "#A7F3D0",
+  },
+  readyPillOff: {
+    backgroundColor: "#F3F4F6",
+    borderColor: "#E5E7EB",
+  },
+  readyPillText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
   enterOtpLabel: {
     fontSize: 13,

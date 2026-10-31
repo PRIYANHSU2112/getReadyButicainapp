@@ -86,6 +86,20 @@ export interface BookingDetail extends Booking {
   subtotal?: number;
   tax?: number;
   payable?: number;
+  /** Customer tapped "I'M READY" (room/workspace prepared). */
+  customerReady?: boolean;
+  /** Extra services added mid-visit, newest last. */
+  addOnRequests?: AddOnRequest[];
+  /** Unpaid add-on amount; End OTP is refused while this is > 0. */
+  addOnAmountDue?: number;
+}
+
+export interface AddOnRequest {
+  id: string;
+  items: {serviceId: string; serviceName: string; unitPrice: number}[];
+  amount: number;
+  proposedBy: "CUSTOMER" | "BEAUTICIAN";
+  status: "PROPOSED" | "APPROVED" | "DECLINED";
 }
 
 export const toBooking = (b: any): BookingDetail => {
@@ -117,6 +131,15 @@ export const toBooking = (b: any): BookingDetail => {
     subtotal: b?.pricing?.subtotal,
     tax: b?.pricing?.tax,
     payable: b?.pricing?.payableAmount,
+    customerReady: Boolean(b?.customerReadyAt),
+    addOnRequests: (b?.addOnRequests ?? []).map((r: any) => ({
+      id: idOf(r),
+      items: r.items ?? [],
+      amount: r.amount ?? 0,
+      proposedBy: r.proposedBy,
+      status: r.status,
+    })),
+    addOnAmountDue: b?.additionalPayment?.status === "PENDING" ? b.additionalPayment.amount ?? 0 : 0,
   };
 };
 

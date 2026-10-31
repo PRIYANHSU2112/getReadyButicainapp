@@ -13,7 +13,14 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
 import {useBooking} from "../../context/BookingContext";
-import {useBookingDetail} from "../../hooks/queries";
+import {useAddOnCashCollected, useBookingDetail} from "../../hooks/queries";
+
+const formatDuration = (fromIso?: string) => {
+  if (!fromIso) return "—";
+  const minutes = Math.max(0, Math.round((Date.now() - Date.parse(fromIso)) / 60000));
+  const h = Math.floor(minutes / 60);
+  return h > 0 ? `${h} hr ${minutes % 60} min` : `${minutes} min`;
+};
 
 type Props = NativeStackScreenProps<RootStackParamList, "EndOtp">;
 
@@ -21,7 +28,30 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
   const insets = useSafeAreaInsets();
   const {bookingId} = route.params;
   const {verifyEndOtp} = useBooking();
-  const {data: booking} = useBookingDetail(bookingId);
+  // Polls so the payment card clears as soon as the customer pays online or from their wallet.
+  const {data: booking, refetch} = useBookingDetail(bookingId, 5000);
+  const cashCollected = useAddOnCashCollected();
+  const amountDue = booking?.addOnAmountDue ?? 0;
+  const totalCharge = booking?.totalAmount ?? 0;
+
+  const handleCashCollected = () => {
+    Alert.alert(
+      "Cash collected?",
+      `Confirm you received ₹${amountDue.toLocaleString("en-IN")} in cash for the added services.`,
+      [
+        {text: "Not yet", style: "cancel"},
+        {
+          text: "Yes, collected",
+          onPress: () =>
+            cashCollected.mutateAsync(bookingId).then(
+              () => refetch(),
+              (error: unknown) =>
+                Alert.alert("Not recorded", error instanceof Error ? error.message : "Please try again."),
+            ),
+        },
+      ],
+    );
+  };
 
   const [otp, setOtp] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -46,12 +76,19 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
       return;
     }
 
-    if (loading) return;
+    if (loading || amountDue > 0) return;
     setLoading(true);
     const ok = await verifyEndOtp(bookingId, otp);
     setLoading(false);
     if (!ok) {
       setOtp("");
+      const fresh = await refetch();
+      Alert.alert(
+        "Couldn't finish the service",
+        (fresh.data?.addOnAmountDue ?? 0) > 0
+          ? "The customer still has to pay for the added services."
+          : "Check the OTP with the customer and make sure every service is marked done.",
+      );
       return;
     }
     navigation.replace("JobCompleted", {
@@ -108,7 +145,9 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
               <View style={styles.sessionTitleGroup}>
                 <Text style={styles.sessionSubtext}>SERVICE SESSION ENDED</Text>
                 <View style={styles.servicesLine}>
-                  <Text style={styles.servicesCount}>4 selected Service </Text>
+                  <Text style={styles.servicesCount}>
+                    {booking?.items.length ?? 0} selected service{booking?.items.length === 1 ? "" : "s"}{" "}
+                  </Text>
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => navigation.navigate("ItemsDetails", {bookingId})}
@@ -129,15 +168,38 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
             <View style={styles.sessionBottomRow}>
               <View style={styles.durationRow}>
                 <Text style={styles.clockIcon}>⏱</Text>
-                <Text style={styles.durationText}>Duration: 1 hr 15 min</Text>
+                <Text style={styles.durationText}>Duration: {formatDuration(booking?.startedAt)}</Text>
               </View>
               <View style={styles.chargeColumn}>
                 <Text style={styles.chargeLabel}>Total Charge</Text>
-                <Text style={styles.chargeAmount}>₹2,379.00</Text>
+                <Text style={styles.chargeAmount}>₹{totalCharge.toLocaleString("en-IN")}</Text>
               </View>
             </View>
           </View>
         </View>
+
+        {/* Payment gate: added services must be paid before the End OTP is accepted */}
+        {amountDue > 0 && (
+          <View style={styles.paymentDueCard}>
+            <Text style={styles.paymentDueTitle}>
+              Customer must pay ₹{amountDue.toLocaleString("en-IN")} for added services
+            </Text>
+            <Text style={styles.paymentDueText}>
+              They can pay by UPI, card or Glow Wallet in their app. Took cash instead? Confirm it below.
+            </Text>
+            <TouchableOpacity
+              style={styles.cashBtn}
+              onPress={handleCashCollected}
+              disabled={cashCollected.isPending}
+              activeOpacity={0.85}>
+              {cashCollected.isPending ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.cashBtnText}>Cash Collected ₹{amountDue.toLocaleString("en-IN")}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Shield Icon Badge */}
         <View style={styles.shieldWrapper}>
@@ -188,11 +250,11 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
           <TouchableOpacity
             style={[
               styles.finalizeBtn,
-              isOtpComplete ? styles.finalizeBtnActive : styles.finalizeBtnDisabled,
+              isOtpComplete && amountDue === 0 ? styles.finalizeBtnActive : styles.finalizeBtnDisabled,
             ]}
             onPress={handleFinalize}
             activeOpacity={isOtpComplete ? 0.85 : 1}
-            disabled={loading}
+            disabled={loading || amountDue > 0}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
@@ -444,6 +506,37 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#114B3E",
     marginTop: 1,
+  },
+  paymentDueCard: {
+    backgroundColor: "#FFF7ED",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#FDBA74",
+    padding: 14,
+    marginBottom: 16,
+  },
+  paymentDueTitle: {
+    fontSize: 14.5,
+    fontWeight: "800",
+    color: "#9A3412",
+  },
+  paymentDueText: {
+    fontSize: 12.5,
+    color: "#7C2D12",
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  cashBtn: {
+    marginTop: 12,
+    backgroundColor: "#114B3E",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  cashBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   shieldWrapper: {
     alignItems: "center",

@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
 import {IMAGES} from "../../constants/images";
-import {useBookableServices} from "../../hooks/queries";
+import {useBookableServices, useProposeAddOns} from "../../hooks/queries";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddExtraService">;
 
@@ -53,17 +55,22 @@ export const AddExtraServiceScreen: React.FC<Props> = ({route, navigation}) => {
   };
 
   const selectedCount = addedItemIds.length;
+  // Shown for reference only; the server prices the request from the catalog.
   const selectedTotal = addedItemIds.reduce((sum, id) => {
     const item = allItems.find(i => i.id === id);
-    return sum + (item ? item.discountPrice : 245);
+    return sum + (item ? item.discountPrice : 0);
   }, 0);
 
-  const handleSendRequest = () => {
+  const proposeAddOns = useProposeAddOns();
+  const handleSendRequest = async () => {
+    if (proposeAddOns.isPending) return;
     const selectedItems = allItems.filter(i => addedItemIds.includes(i.id));
-    navigation.navigate("AwaitingApproval", {
-      bookingId,
-      requestedItems: selectedItems,
-    });
+    try {
+      await proposeAddOns.mutateAsync({id: bookingId, serviceIds: addedItemIds});
+      navigation.replace("AwaitingApproval", {bookingId, requestedItems: selectedItems});
+    } catch (error) {
+      Alert.alert("Request not sent", error instanceof Error ? error.message : "Please try again.");
+    }
   };
 
   return (
@@ -244,10 +251,15 @@ export const AddExtraServiceScreen: React.FC<Props> = ({route, navigation}) => {
           <TouchableOpacity
             activeOpacity={0.88}
             onPress={handleSendRequest}
+            disabled={proposeAddOns.isPending || selectedCount > 5}
             style={styles.sendRequestBtn}>
-            <Text style={styles.sendRequestBtnText}>
-              Send Addition Request to Customer ▷
-            </Text>
+            {proposeAddOns.isPending ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.sendRequestBtnText}>
+                {selectedCount > 5 ? "Select up to 5 services" : "Send Addition Request to Customer ▷"}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       )}

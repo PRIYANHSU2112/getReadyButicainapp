@@ -194,12 +194,14 @@ export const useAssignmentCards = () => {
   return {...q, cards: q.data?.map(toBookingCard) ?? []};
 };
 
-export const useBookingDetail = (id?: string) =>
+// `pollMs` keeps a screen live while it waits on the customer (approval, payment).
+export const useBookingDetail = (id?: string, pollMs?: number) =>
   useQuery({
     queryKey: qk.booking(id ?? ""),
     queryFn: () => bookingService.getBookingDetails(id!),
     enabled: !!id,
     select: toBooking,
+    refetchInterval: pollMs ?? false,
   });
 
 const useBookingMutation = <V,>(fn: (v: V) => Promise<unknown>) => {
@@ -219,6 +221,11 @@ export const useVerifyEndOtp = () =>
   useBookingMutation(({id, otp}: {id: string; otp: string}) => bookingService.verifyEndOtp(id, otp));
 export const useCompleteItem = () =>
   useBookingMutation(({id, itemId}: {id: string; itemId: string}) => bookingService.completeItem(id, itemId));
+export const useProposeAddOns = () =>
+  useBookingMutation(({id, serviceIds}: {id: string; serviceIds: string[]}) =>
+    bookingService.proposeAddOns(id, serviceIds));
+export const useAddOnCashCollected = () =>
+  useBookingMutation((id: string) => bookingService.addOnCashCollected(id));
 export const useCancelBooking = () =>
   useBookingMutation(({id, reason}: {id: string; reason: string}) => bookingService.cancel(id, reason));
 

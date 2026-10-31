@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useRef} from "react";
 import {
   StyleSheet,
   Text,
@@ -20,37 +20,31 @@ type Props = NativeStackScreenProps<RootStackParamList, "AwaitingApproval">;
 export const AwaitingApprovalScreen: React.FC<Props> = ({route, navigation}) => {
   const insets = useSafeAreaInsets();
   const {bookingId, requestedItems} = route.params;
-  const customerName = useBookingDetail(bookingId).data?.customerName ?? "the customer";
+  // Polls while the customer decides in their app.
+  const {data: booking} = useBookingDetail(bookingId, 4000);
+  const customerName = booking?.customerName ?? "the customer";
+  const myRequest = [...(booking?.addOnRequests ?? [])].reverse().find(r => r.proposedBy === "BEAUTICIAN");
+  const handled = useRef(false);
 
-  const [isResent, setIsResent] = useState(false);
+  useEffect(() => {
+    if (!myRequest || handled.current) return;
+    if (myRequest.status === "APPROVED") {
+      handled.current = true;
+      navigation.replace("ServiceAddedSuccess", {bookingId, addedItems: requestedItems});
+    } else if (myRequest.status === "DECLINED") {
+      handled.current = true;
+      Alert.alert("Request declined", `${customerName} declined the added services.`, [
+        {text: "OK", onPress: () => navigation.goBack()},
+      ]);
+    }
+  }, [myRequest, bookingId, requestedItems, customerName, navigation]);
 
-  // No mid-service add-on endpoint yet: approval is confirmed in person by the customer.
   const handleResend = () => {
-    setIsResent(true);
-    Alert.alert("Ask the Customer", `Please ask ${customerName} to confirm the added services in person.`);
+    Alert.alert("Ask the Customer", `${customerName} can approve the request from the booking screen in their app.`);
   };
 
-  const handleCancel = () => {
-    Alert.alert(
-      "Cancel Request",
-      "Are you sure you want to cancel this addition request?",
-      [
-        {text: "No", style: "cancel"},
-        {
-          text: "Yes, Cancel",
-          style: "destructive",
-          onPress: () => navigation.goBack(),
-        },
-      ]
-    );
-  };
-
-  const handleManualApprove = () => {
-    navigation.navigate("ServiceAddedSuccess", {
-      bookingId,
-      addedItems: requestedItems,
-    });
-  };
+  // There is no "withdraw": the request stays with the customer, who can approve or decline it.
+  const handleBack = () => navigation.goBack();
 
   return (
     <View style={styles.screenContainer}>
@@ -97,27 +91,7 @@ export const AwaitingApprovalScreen: React.FC<Props> = ({route, navigation}) => 
           </Text>
 
           {/* Requested item cards */}
-          {(requestedItems.length > 0
-            ? requestedItems
-            : [
-                {
-                  id: "req-1",
-                  title: "Classic Manicure",
-                  category: "Nails",
-                  duration: "45 min",
-                  discountPrice: 245,
-                  originalPrice: 445,
-                },
-                {
-                  id: "req-2",
-                  title: "Classic Manicure",
-                  category: "Nails",
-                  duration: "45 min",
-                  discountPrice: 245,
-                  originalPrice: 445,
-                },
-              ]
-          ).map((item, index) => (
+          {requestedItems.map((item, index) => (
             <View key={`req-item-${index}`} style={styles.itemCard}>
               <Image
                 source={IMAGES.SERVICE_PEDICURE}
@@ -130,13 +104,15 @@ export const AwaitingApprovalScreen: React.FC<Props> = ({route, navigation}) => 
                 </Text>
                 <View style={styles.tagsRow}>
                   <View style={styles.pillTag}>
-                    <Text style={styles.pillTagText}>{item.category || "Nails"}</Text>
+                    <Text style={styles.pillTagText}>{item.category}</Text>
                   </View>
-                  <Text style={styles.durationText}>⏱ {item.duration || "45 min"}</Text>
+                  {!!item.duration && <Text style={styles.durationText}>⏱ {item.duration}</Text>}
                 </View>
                 <View style={styles.priceRow}>
-                  <Text style={styles.discountPrice}>₹{item.discountPrice || 245}.00</Text>
-                  <Text style={styles.originalPrice}>₹{item.originalPrice || 445}.00</Text>
+                  <Text style={styles.discountPrice}>₹{item.discountPrice}</Text>
+                  {item.originalPrice > item.discountPrice && (
+                    <Text style={styles.originalPrice}>₹{item.originalPrice}</Text>
+                  )}
                 </View>
               </View>
               <View style={styles.addedBadge}>
@@ -165,9 +141,7 @@ export const AwaitingApprovalScreen: React.FC<Props> = ({route, navigation}) => 
             <Text maxFontSizeMultiplier={1.3} style={styles.customerName}>
               {customerName}
             </Text>
-            <Text style={styles.customerSentTime}>
-              {isResent ? "Request sent just now" : "Request sent 2 mins ago"}
-            </Text>
+            <Text style={styles.customerSentTime}>Waiting for approval in the customer app</Text>
           </View>
           <View style={styles.sentBadge}>
             <Text style={styles.sentBadgeText}>SENT</Text>
@@ -177,7 +151,7 @@ export const AwaitingApprovalScreen: React.FC<Props> = ({route, navigation}) => 
         {/* Lock Pill Badge */}
         <View style={styles.lockBadgePill}>
           <Text style={styles.lockIcon}>🔒</Text>
-          <Text style={styles.lockText}>Service cannot start until verified</Text>
+          <Text style={styles.lockText}>Don't start these services until approved</Text>
         </View>
 
         {/* Resend Request Link matching Home-1.png */}
@@ -185,27 +159,20 @@ export const AwaitingApprovalScreen: React.FC<Props> = ({route, navigation}) => 
           activeOpacity={0.7}
           onPress={handleResend}
           style={styles.resendBtn}>
-          <Text style={styles.resendBtnText}>Resend Request</Text>
+          <Text style={styles.resendBtnText}>Remind Customer</Text>
         </TouchableOpacity>
 
-        {/* Cancel Request Button matching Home-1.png */}
+        {/* Back to the service (the request stays with the customer) */}
         <TouchableOpacity
           activeOpacity={0.88}
-          onPress={handleCancel}
+          onPress={handleBack}
           style={styles.cancelRequestBtn}>
-          <Text style={styles.cancelRequestBtnText}>Cancel Request</Text>
+          <Text style={styles.cancelRequestBtnText}>Back to Service</Text>
         </TouchableOpacity>
 
         <Text style={styles.footnoteText}>
-          The service will be unlocked automatically once the customer approves the charges.
+          This screen updates on its own once the customer approves or declines.
         </Text>
-
-        {/* Quick Demo Instant-Approve Shortcut */}
-        <TouchableOpacity
-          onPress={handleManualApprove}
-          style={styles.demoShortcutBtn}>
-          <Text style={styles.demoShortcutText}>⚡ Simulate Client Approval Now</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -467,19 +434,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     lineHeight: 16,
     marginBottom: 16,
-  },
-  demoShortcutBtn: {
-    alignSelf: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: "#ECFDF5",
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  demoShortcutText: {
-    fontSize: 11.5,
-    fontWeight: "700",
-    color: "#065F46",
   },
 });
