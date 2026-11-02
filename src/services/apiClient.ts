@@ -1,6 +1,16 @@
+import { Platform } from "react-native";
 import { AuthTokens, tokenStorage } from "./tokenStorage";
 
-export const BASE_URL = "https://api.ready.deepent.in/api/v1";
+const isAndroid = Platform.OS === "android";
+const isEmulator =
+  isAndroid &&
+  (Boolean(Platform.constants?.Model?.toLowerCase()?.includes("sdk")) ||
+   Boolean(Platform.constants?.Model?.toLowerCase()?.includes("emulator")) ||
+   Boolean(Platform.constants?.Fingerprint?.toLowerCase()?.includes("generic")) ||
+   Boolean(Platform.constants?.Brand?.toLowerCase()?.includes("generic")));
+
+const HOST = isEmulator ? "10.0.2.2:3000" : "10.22.140.31:3000";
+export const BASE_URL = `http://${HOST}/api/v1`;
 const TIMEOUT_MS = 20000;
 
 export class ApiError extends Error {

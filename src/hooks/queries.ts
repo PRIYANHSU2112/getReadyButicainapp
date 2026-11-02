@@ -1,8 +1,8 @@
-import {useMemo} from "react";
-import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Paginated} from "../services/apiClient";
-import {bookingService, slotService} from "../services/bookingService";
-import {kycService} from "../services/kycService";
+import { useMemo } from "react";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Paginated } from "../services/apiClient";
+import { bookingService, slotService } from "../services/bookingService";
+import { kycService } from "../services/kycService";
 import {
   homeService, hrmService, LeaveStatusApi, notificationService, PayoutRequest, userService, walletService,
 } from "../services/partnerService";
@@ -10,9 +10,9 @@ import {
   toBooking, toBookingCard, toCertification, toDetailedService, toNotification, toPackageItem, toServiceCard,
   toTransaction, toUpcoming, toWorkHistory,
 } from "../services/mappers";
-import {catalogService} from "../services/catalogService";
-import {contentService, PolicyType} from "../services/contentService";
-import {DutyStatus} from "../types";
+import { catalogService } from "../services/catalogService";
+import { contentService, PolicyType } from "../services/contentService";
+import { DutyStatus } from "../types";
 
 export const qk = {
   profile: ["profile"] as const,
@@ -37,10 +37,10 @@ const nextPage = <T,>(last: Paginated<T>) =>
 
 // --- Profile / Home ---------------------------------------------------------
 export const useProfile = (enabled = true) =>
-  useQuery({queryKey: qk.profile, queryFn: kycService.getProfile, enabled, staleTime: 5 * 60_000});
+  useQuery({ queryKey: qk.profile, queryFn: kycService.getProfile, enabled, staleTime: 5 * 60_000 });
 
 export const useHomeSummary = () =>
-  useQuery({queryKey: qk.summary, queryFn: homeService.getSummary, staleTime: 30_000});
+  useQuery({ queryKey: qk.summary, queryFn: homeService.getSummary, staleTime: 30_000 });
 
 export const useHomeServices = () =>
   useQuery({
@@ -62,13 +62,13 @@ export const useSetDuty = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (status: DutyStatus) => homeService.setDuty(status),
-    onSuccess: () => qc.invalidateQueries({queryKey: qk.summary}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.summary }),
   });
 };
 
 // --- User (personal info / address) -----------------------------------------
-export const useUpdateMe = () => useMutation({mutationFn: userService.updateMe});
-export const useSaveAddress = () => useMutation({mutationFn: userService.saveHomeAddress});
+export const useUpdateMe = () => useMutation({ mutationFn: userService.updateMe });
+export const useSaveAddress = () => useMutation({ mutationFn: userService.saveHomeAddress });
 
 // --- Content (policies / FAQ / support) -------------------------------------
 const CONTENT_STALE = 60 * 60_000;
@@ -82,12 +82,12 @@ export const usePolicy = (type: PolicyType) =>
   });
 
 export const useCompany = () =>
-  useQuery({queryKey: ["content", "company"], queryFn: contentService.getCompany, staleTime: CONTENT_STALE});
+  useQuery({ queryKey: ["content", "company"], queryFn: contentService.getCompany, staleTime: CONTENT_STALE });
 
 export const useFaqs = () =>
-  useQuery({queryKey: ["content", "faqs"], queryFn: contentService.getFaqs, staleTime: CONTENT_STALE});
+  useQuery({ queryKey: ["content", "faqs"], queryFn: contentService.getFaqs, staleTime: CONTENT_STALE });
 
-export const useCreateTicket = () => useMutation({mutationFn: contentService.createTicket});
+export const useCreateTicket = () => useMutation({ mutationFn: contentService.createTicket });
 
 // --- Slots ------------------------------------------------------------------
 export const useSlots = (beauticianId?: string, date?: string) =>
@@ -101,7 +101,7 @@ export const useSlots = (beauticianId?: string, date?: string) =>
 
 export const useSlotMutation = <V,>(fn: (v: V) => Promise<unknown>) => {
   const qc = useQueryClient();
-  return useMutation({mutationFn: fn, onSuccess: () => qc.invalidateQueries({queryKey: ["slots"]})});
+  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: ["slots"] }) });
 };
 
 // --- Catalog: my services / packages ----------------------------------------
@@ -118,7 +118,7 @@ export const useMyServices = () =>
 // Only approved services may be sold — used where a service is attached to a booking.
 export const useBookableServices = () => {
   const q = useMyServices();
-  return {...q, bookable: useMemo(() => (q.data ?? []).filter(s => s.status === "approved"), [q.data])};
+  return { ...q, bookable: useMemo(() => (q.data ?? []).filter(s => s.status === "approved"), [q.data]) };
 };
 
 export const usePackages = () =>
@@ -151,24 +151,24 @@ export const usePackageDetail = (id?: string) =>
 export const usePackage = (id?: string) => {
   const listed = usePackages().data?.find(p => p.id === id);
   const detail = usePackageDetail(listed ? undefined : id);
-  return {pkg: listed ?? detail.data, isLoading: !listed && detail.isLoading};
+  return { pkg: listed ?? detail.data, isLoading: !listed && detail.isLoading };
 };
 
 // --- KYC: work history / certificates / bank --------------------------------
 const asList = (d: unknown): any[] => (Array.isArray(d) ? d : (d as any)?.items ?? []);
 
 export const useWorkHistory = () =>
-  useQuery({queryKey: qk.workHistory, queryFn: kycService.getWorkHistory, select: d => asList(d).map(toWorkHistory)});
+  useQuery({ queryKey: qk.workHistory, queryFn: kycService.getWorkHistory, select: d => asList(d).map(toWorkHistory) });
 
 export const useCertificates = () =>
-  useQuery({queryKey: qk.certificates, queryFn: kycService.getCertificates, select: d => asList(d).map(toCertification)});
+  useQuery({ queryKey: qk.certificates, queryFn: kycService.getCertificates, select: d => asList(d).map(toCertification) });
 
 export const useBankDetails = () =>
-  useQuery({queryKey: qk.bank, queryFn: () => kycService.getBankDetails().catch(() => null), staleTime: 5 * 60_000});
+  useQuery({ queryKey: qk.bank, queryFn: () => kycService.getBankDetails().catch(() => null), staleTime: 5 * 60_000 });
 
 const useProfileMutation = <V,>(fn: (v: V) => Promise<unknown>, key: readonly unknown[]) => {
   const qc = useQueryClient();
-  return useMutation({mutationFn: fn, onSuccess: () => qc.invalidateQueries({queryKey: key})});
+  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: key }) });
 };
 
 export const useAddWorkHistory = () => useProfileMutation(kycService.addWorkHistory, qk.workHistory);
@@ -182,7 +182,7 @@ export const useAssignments = (enabled = true) =>
   useInfiniteQuery({
     queryKey: qk.assignments,
     enabled,
-    queryFn: ({pageParam}) => bookingService.getMyAssignments(pageParam, 10),
+    queryFn: ({ pageParam }) => bookingService.getMyAssignments(pageParam, 10),
     initialPageParam: 1,
     getNextPageParam: nextPage,
     select: data => data.pages.flatMap(p => p.items),
@@ -191,7 +191,7 @@ export const useAssignments = (enabled = true) =>
 
 export const useAssignmentCards = () => {
   const q = useAssignments();
-  return {...q, cards: q.data?.map(toBookingCard) ?? []};
+  return { ...q, cards: q.data?.map(toBookingCard) ?? [] };
 };
 
 // `pollMs` keeps a screen live while it waits on the customer (approval, payment).
@@ -209,34 +209,34 @@ const useBookingMutation = <V,>(fn: (v: V) => Promise<unknown>) => {
   return useMutation({
     mutationFn: fn,
     onSuccess: () => {
-      qc.invalidateQueries({queryKey: ["bookings"]});
-      qc.invalidateQueries({queryKey: qk.summary});
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: qk.summary });
     },
   });
 };
 
 export const useVerifyStartOtp = () =>
-  useBookingMutation(({id, otp}: {id: string; otp: string}) => bookingService.verifyStartOtp(id, otp));
+  useBookingMutation(({ id, otp }: { id: string; otp: string }) => bookingService.verifyStartOtp(id, otp));
 export const useVerifyEndOtp = () =>
-  useBookingMutation(({id, otp}: {id: string; otp: string}) => bookingService.verifyEndOtp(id, otp));
+  useBookingMutation(({ id, otp }: { id: string; otp: string }) => bookingService.verifyEndOtp(id, otp));
 export const useCompleteItem = () =>
-  useBookingMutation(({id, itemId}: {id: string; itemId: string}) => bookingService.completeItem(id, itemId));
+  useBookingMutation(({ id, itemId }: { id: string; itemId: string }) => bookingService.completeItem(id, itemId));
 export const useProposeAddOns = () =>
-  useBookingMutation(({id, serviceIds}: {id: string; serviceIds: string[]}) =>
+  useBookingMutation(({ id, serviceIds }: { id: string; serviceIds: string[] }) =>
     bookingService.proposeAddOns(id, serviceIds));
 export const useAddOnCashCollected = () =>
   useBookingMutation((id: string) => bookingService.addOnCashCollected(id));
 export const useCancelBooking = () =>
-  useBookingMutation(({id, reason}: {id: string; reason: string}) => bookingService.cancel(id, reason));
+  useBookingMutation(({ id, reason }: { id: string; reason: string }) => bookingService.cancel(id, reason));
 
 // --- Wallet -----------------------------------------------------------------
 export const useWalletDashboard = () =>
-  useQuery({queryKey: qk.wallet, queryFn: walletService.getDashboard, staleTime: 30_000});
+  useQuery({ queryKey: qk.wallet, queryFn: walletService.getDashboard, staleTime: 30_000 });
 
 export const useTransactions = (type: "all" | "credit" | "debit" = "all") =>
   useInfiniteQuery({
     queryKey: [...qk.transactions, type],
-    queryFn: ({pageParam}) => walletService.getTransactions(pageParam, 15, type),
+    queryFn: ({ pageParam }) => walletService.getTransactions(pageParam, 15, type),
     initialPageParam: 1,
     getNextPageParam: nextPage,
     select: data => data.pages.flatMap(p => p.items).map(toTransaction),
@@ -251,15 +251,15 @@ export const useTransaction = (id?: string, enabled = true) =>
   });
 
 export const usePayoutConfig = () =>
-  useQuery({queryKey: ["wallet", "payout-config"], queryFn: walletService.getPayoutConfig, staleTime: 30 * 60_000});
+  useQuery({ queryKey: ["wallet", "payout-config"], queryFn: walletService.getPayoutConfig, staleTime: 30 * 60_000 });
 
 export const useRequestPayout = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: PayoutRequest) => walletService.requestPayout(payload),
     onSuccess: () => {
-      qc.invalidateQueries({queryKey: ["wallet"]});
-      qc.invalidateQueries({queryKey: qk.summary});
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: qk.summary });
     },
   });
 };
@@ -268,7 +268,7 @@ export const useRequestPayout = () => {
 export const useNotifications = () =>
   useInfiniteQuery({
     queryKey: qk.notifications,
-    queryFn: ({pageParam}) => notificationService.list(pageParam, 20),
+    queryFn: ({ pageParam }) => notificationService.list(pageParam, 20),
     initialPageParam: 1,
     getNextPageParam: nextPage,
     select: data => data.pages.flatMap(p => p.items).map(toNotification),
@@ -278,18 +278,18 @@ export const useMarkNotificationRead = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: notificationService.markRead,
-    onSuccess: () => qc.invalidateQueries({queryKey: qk.notifications}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.notifications }),
   });
 };
 
 // --- HRM --------------------------------------------------------------------
 export const useAttendance = (month: number, year: number) =>
-  useQuery({queryKey: [...qk.attendance, year, month], queryFn: () => hrmService.getAttendance(month, year)});
+  useQuery({ queryKey: [...qk.attendance, year, month], queryFn: () => hrmService.getAttendance(month, year) });
 
 export const useLeaves = (status?: LeaveStatusApi) =>
-  useQuery({queryKey: [...qk.leaves, status ?? "all"], queryFn: () => hrmService.getLeaves(status)});
+  useQuery({ queryKey: [...qk.leaves, status ?? "all"], queryFn: () => hrmService.getLeaves(status) });
 
-export const usePayslips = () => useQuery({queryKey: qk.payslips, queryFn: hrmService.getPayslips, staleTime: 10 * 60_000});
+export const usePayslips = () => useQuery({ queryKey: qk.payslips, queryFn: hrmService.getPayslips, staleTime: 10 * 60_000 });
 
 export const useApplyLeave = () => {
   const qc = useQueryClient();
@@ -299,13 +299,13 @@ export const useApplyLeave = () => {
       await kycService.ensureProfile();
       return hrmService.applyLeave(v);
     },
-    onSuccess: () => qc.invalidateQueries({queryKey: qk.leaves}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.leaves }),
   });
 };
 
 export const useCancelLeave = () => {
   const qc = useQueryClient();
-  return useMutation({mutationFn: hrmService.cancelLeave, onSuccess: () => qc.invalidateQueries({queryKey: qk.leaves})});
+  return useMutation({ mutationFn: hrmService.cancelLeave, onSuccess: () => qc.invalidateQueries({ queryKey: qk.leaves }) });
 };
 
 export const usePunch = () => {
@@ -316,8 +316,9 @@ export const usePunch = () => {
       return kind === "in" ? hrmService.punchIn() : hrmService.punchOut();
     },
     onSuccess: () => {
-      qc.invalidateQueries({queryKey: qk.attendance});
-      qc.invalidateQueries({queryKey: qk.summary});
+      qc.invalidateQueries({ queryKey: qk.attendance });
+      qc.invalidateQueries({ queryKey: qk.summary });
     },
   });
 };
+// 
