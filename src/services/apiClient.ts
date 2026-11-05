@@ -2,12 +2,13 @@ import { Platform } from "react-native";
 import { AuthTokens, tokenStorage } from "./tokenStorage";
 
 const isAndroid = Platform.OS === "android";
+const constants = (Platform.constants || {}) as any;
 const isEmulator =
   isAndroid &&
-  (Boolean(Platform.constants?.Model?.toLowerCase()?.includes("sdk")) ||
-   Boolean(Platform.constants?.Model?.toLowerCase()?.includes("emulator")) ||
-   Boolean(Platform.constants?.Fingerprint?.toLowerCase()?.includes("generic")) ||
-   Boolean(Platform.constants?.Brand?.toLowerCase()?.includes("generic")));
+  (Boolean(constants?.Model?.toLowerCase()?.includes("sdk")) ||
+   Boolean(constants?.Model?.toLowerCase()?.includes("emulator")) ||
+   Boolean(constants?.Fingerprint?.toLowerCase()?.includes("generic")) ||
+   Boolean(constants?.Brand?.toLowerCase()?.includes("generic")));
 
 const HOST = isEmulator ? "10.0.2.2:3000" : "10.22.140.31:3000";
 export const BASE_URL = `http://${HOST}/api/v1`;
