@@ -4,6 +4,7 @@ import {focusManager, useQueryClient} from "@tanstack/react-query";
 import {useAuth} from "../../context/AuthContext";
 import {usePartner} from "../../context/PartnerContext";
 import {qk} from "../../hooks/queries";
+import {rateLimitRemainingMs} from "../../services/apiClient";
 import {toast} from "./Toast";
 
 const BOOKINGS_MS = 20_000;
@@ -67,7 +68,8 @@ export const LiveSync = () => {
   useEffect(() => {
     if (!isAuthenticated) return;
     const tick = (keys: readonly unknown[][]) => () => {
-      if (appActive.current) keys.forEach(k => qc.invalidateQueries({queryKey: k}));
+      // Skip while the server is rate-limiting us; the next tick after the window resumes.
+      if (appActive.current && rateLimitRemainingMs() === 0) keys.forEach(k => qc.invalidateQueries({queryKey: k}));
     };
     const timers = [setInterval(tick([[...qk.notifications]]), NOTIFICATIONS_MS)];
     if (dutyStatus === "online") {

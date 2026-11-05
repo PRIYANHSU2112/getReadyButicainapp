@@ -309,14 +309,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {

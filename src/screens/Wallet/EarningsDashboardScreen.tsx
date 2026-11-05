@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
@@ -49,14 +48,6 @@ export const EarningsDashboardScreen: React.FC = () => {
   const handleViewAllPress = useCallback(() => {
     navigation.navigate("EarningsHistory", { initialTab: "all" });
   }, [navigation]);
-
-  const handleClaimCashback = useCallback(() => {
-    Alert.alert(
-      "Cashback Offer",
-      "Add ₹500 or more to your wallet balance via UPI to unlock flat 10% instant cashback credited to your wallet.",
-      [{ text: "Got It" }]
-    );
-  }, []);
 
   const handleTransactionPress = useCallback(
     (item: TransactionItem) => {
@@ -127,24 +118,6 @@ export const EarningsDashboardScreen: React.FC = () => {
             onPress={handleHistoryPress}
           >
             <Text style={styles.historyBtnText}>History</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 10% CASHBACK PROMO BANNER */}
-        <View style={styles.promoCard}>
-          <Text style={styles.promoIcon}>🎉</Text>
-          <View style={styles.promoTextCol}>
-            <Text style={styles.promoTitle}>10% Cashback on top-up!</Text>
-            <Text style={styles.promoSub}>
-              Add ₹500+ via UPI. Valid till 31 Jul.
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.claimBtn}
-            activeOpacity={0.8}
-            onPress={handleClaimCashback}
-          >
-            <Text style={styles.claimBtnText}>Claim</Text>
           </TouchableOpacity>
         </View>
 
@@ -267,7 +240,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 20,
   },
   withdrawBtn: {
     flex: 1,
@@ -302,45 +275,6 @@ const styles = StyleSheet.create({
   historyBtnText: {
     color: "#114B3E",
     fontSize: 14,
-    fontWeight: "700",
-  },
-  promoCard: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    marginBottom: 20,
-  },
-  promoIcon: {
-    fontSize: 24,
-    marginRight: 10,
-  },
-  promoTextCol: {
-    flex: 1,
-    marginRight: 10,
-  },
-  promoTitle: {
-    fontSize: 13.5,
-    fontWeight: "800",
-    color: "#0F172A",
-    marginBottom: 2,
-  },
-  promoSub: {
-    fontSize: 11,
-    color: "#64748B",
-  },
-  claimBtn: {
-    backgroundColor: "#114B3E",
-    paddingVertical: 7,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  claimBtnText: {
-    color: "#FFFFFF",
-    fontSize: 12,
     fontWeight: "700",
   },
   sectionHeader: {

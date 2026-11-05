@@ -38,6 +38,8 @@ export const darkTheme: AppTheme = {
     ratingStar: "#FBBF24", tagBackground: "rgba(22,168,112,0.15)", tagText: "#4ADE80",
     ripple: "rgba(22,168,112,0.2)",
     emerald: palette.emerald,
+    crimson: "#F0709A", crimsonTint: "rgba(240,112,154,0.16)",
+    mint: "rgba(22,168,112,0.15)", sos: "#EF4444",
     gold: palette.gold.main, goldLight: palette.gold.light,
     disabledBackground: "#1E2922", disabledText: "#4B7A5C",
   },

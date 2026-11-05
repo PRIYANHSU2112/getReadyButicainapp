@@ -1,4 +1,5 @@
 import React, {useState, useRef, useMemo} from "react";
+import {palette} from "../../theme";
 import {
   View,
   Image,
@@ -38,16 +39,16 @@ const ONBOARDING_SLIDES: OnboardingSlide[] = [
   {
     id: "slide_2",
     image: IMAGES.ONBOARDING_TWO,
-    title: "Earn More, Track\nBetter",
+    title: "Bookings at Your\nFingertips",
     description:
-      "Track your service earnings, hit monthly targets, and withdraw your payouts directly to your bank account anytime.",
+      "Receive real-time client requests, navigate to locations easily, and manage your daily schedule with zero stress.",
   },
   {
     id: "slide_3",
     image: IMAGES.ONBOARDING_THREE,
-    title: "Bookings at Your\nFingertips",
+    title: "Earn More, Track\nBetter",
     description:
-      "Receive real-time client requests, navigate to locations easily, and manage your daily schedule with zero stress.",
+      "Track your service earnings, hit monthly targets, and withdraw your payouts directly to your bank account anytime.",
   },
 ];
 
@@ -205,7 +206,7 @@ export const OnboardingScreen: React.FC<Props> = ({navigation}) => {
 
             const backgroundColor = scrollX.interpolate({
               inputRange,
-              outputRange: ["#D1D5DB", "#114B3E", "#D1D5DB"],
+              outputRange: ["#D1D5DB", palette.brand.green, "#D1D5DB"],
               extrapolate: "clamp",
             });
 
@@ -339,11 +340,11 @@ const styles = StyleSheet.create({
   actionButton: {
     width: "100%",
     height: 50,
-    backgroundColor: "#114B3E", // Deep emerald matching Figma screenshot
+    backgroundColor: palette.brand.green, // Deep emerald matching Figma screenshot
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#114B3E",
+    shadowColor: palette.brand.green,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.25,
     shadowRadius: 8,

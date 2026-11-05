@@ -185,7 +185,9 @@ const PackageDetailsContent: React.FC<Props & {pkg: PackageItem}> = ({navigation
           </View>
         </View>
 
-        {/* Service Review matching Image 2 */}
+        {/* Service Review matching Image 2 — only when real reviews exist. There is no
+            all-reviews screen yet, so no "View All" link either. */}
+        {reviews.length > 0 && (
         <View style={styles.sectionContainer}>
           <View style={styles.reviewHeaderRow}>
             <View style={styles.reviewTitleGroup}>
@@ -194,11 +196,6 @@ const PackageDetailsContent: React.FC<Props & {pkg: PackageItem}> = ({navigation
                 Service Review
               </Text>
             </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate("RatingsReviews")}>
-              <Text style={styles.viewAllText}>View All ›</Text>
-            </TouchableOpacity>
           </View>
 
           <ScrollView
@@ -234,6 +231,7 @@ const PackageDetailsContent: React.FC<Props & {pkg: PackageItem}> = ({navigation
             ))}
           </ScrollView>
         </View>
+        )}
       </ScrollView>
 
       {/* Bottom Action Bar matching Image 2 */}
@@ -293,14 +291,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48", // Rose red accent matching design
+    color: "#B02B58", // Rose red accent matching design
     fontWeight: "700",
   },
   headerTitle: {

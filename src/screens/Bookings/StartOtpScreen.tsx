@@ -10,6 +10,7 @@ import {
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
+import {SERVICE_OTP_MAX_LENGTH, SERVICE_OTP_MIN_LENGTH} from "../../constants/otp";
 import {useBooking} from "../../context/BookingContext";
 import {toast} from "../../components/common/Toast";
 import {useBookingDetail} from "../../hooks/queries";
@@ -27,7 +28,7 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
   const [verifying, setVerifying] = useState(false);
 
   const handleKeyPress = (val: string) => {
-    if (otp.length < 4) {
+    if (otp.length < SERVICE_OTP_MAX_LENGTH) {
       setOtp(prev => prev + val);
     }
   };
@@ -42,8 +43,8 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
 
   const handleVerify = async () => {
     if (verifying) return;
-    if (otp.length !== 4) {
-      Alert.alert("Incomplete OTP", "Please enter the 4-digit start OTP shared by the customer.");
+    if (otp.length < SERVICE_OTP_MIN_LENGTH || otp.length > SERVICE_OTP_MAX_LENGTH) {
+      Alert.alert("Incomplete OTP", "Please enter the OTP shared by the customer.");
       return;
     }
     setVerifying(true);
@@ -58,12 +59,7 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
     }
   };
 
-  const digits = [
-    otp[0] || "",
-    otp[1] || "",
-    otp[2] || "",
-    otp[3] || "",
-  ];
+  const digits = Array.from({length: SERVICE_OTP_MAX_LENGTH}, (_, i) => otp[i] || "");
 
   return (
     <View style={styles.screenContainer}>
@@ -98,7 +94,7 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
           Enter Customer Start OTP
         </Text>
         <Text maxFontSizeMultiplier={1.3} style={styles.screenSubtitle}>
-          Ask the customer for their 4-digit OTP to begin the service.
+          Ask the customer for their OTP to begin the service.
         </Text>
 
         <View style={[styles.readyPill, customerReady ? styles.readyPillOn : styles.readyPillOff]}>
@@ -110,7 +106,7 @@ export const StartOtpScreen: React.FC<Props> = ({route, navigation}) => {
         {/* OTP Input Label */}
         <Text style={styles.enterOtpLabel}>Enter OTP</Text>
 
-        {/* 4 Digit Boxes matching Home-9.png */}
+        {/* OTP boxes (count comes from constants/otp) */}
         <View style={styles.otpBoxesRow}>
           {digits.map((digit, idx) => (
             <View
@@ -235,14 +231,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {
@@ -316,12 +312,16 @@ const styles = StyleSheet.create({
   },
   otpBoxesRow: {
     flexDirection: "row",
-    gap: 12,
+    alignSelf: "stretch",
+    justifyContent: "center",
+    gap: 8,
     marginBottom: 20,
   },
+  // Boxes share the row, so six fit even on a narrow phone; maxWidth keeps them tidy on wide ones.
   otpBox: {
-    width: 60,
-    height: 60,
+    flex: 1,
+    maxWidth: 46,
+    height: 52,
     borderRadius: 14,
     backgroundColor: "#FFFFFF",
     borderWidth: 1.5,

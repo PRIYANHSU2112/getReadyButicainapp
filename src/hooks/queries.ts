@@ -1,8 +1,8 @@
-import { useMemo } from "react";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Paginated } from "../services/apiClient";
-import { bookingService, slotService } from "../services/bookingService";
-import { kycService } from "../services/kycService";
+import {useMemo} from "react";
+import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {Paginated, rateLimitRemainingMs} from "../services/apiClient";
+import {bookingService, slotService} from "../services/bookingService";
+import {kycService} from "../services/kycService";
 import {
   homeService, hrmService, LeaveStatusApi, notificationService, PayoutRequest, userService, walletService,
 } from "../services/partnerService";
@@ -201,7 +201,8 @@ export const useBookingDetail = (id?: string, pollMs?: number) =>
     queryFn: () => bookingService.getBookingDetails(id!),
     enabled: !!id,
     select: toBooking,
-    refetchInterval: pollMs ?? false,
+    // Evaluated on every cycle: while rate-limited, wait out the window instead of polling.
+    refetchInterval: pollMs ? () => Math.max(pollMs, rateLimitRemainingMs()) : false,
   });
 
 const useBookingMutation = <V,>(fn: (v: V) => Promise<unknown>) => {

@@ -11,11 +11,15 @@ import {
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
+import {DetailedServiceItem} from "../../types";
+import {dialEmergency} from "../../utils/emergency";
 import {IMAGES} from "../../constants/images";
-import {EmergencySosModal} from "../../components/common";
+import {EmergencySosModal, toast} from "../../components/common";
 import {useBookingDetail} from "../../hooks/queries";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ServiceCheckIn">;
+
+const END_SERVICE_HOLD_MS = 800;
 
 export const ServiceCheckInScreen: React.FC<Props> = ({route, navigation}) => {
   const insets = useSafeAreaInsets();
@@ -127,26 +131,30 @@ export const ServiceCheckInScreen: React.FC<Props> = ({route, navigation}) => {
               Requested Items
             </Text>
 
-            {extraItems.map((item, index) => (
-              <View key={`extra-${index}`} style={styles.bookedItemCard}>
+            {(extraItems as DetailedServiceItem[]).map((item, index) => (
+              <View key={`extra-${item.id ?? index}`} style={styles.bookedItemCard}>
                 <Image
-                  source={IMAGES.SERVICE_FACIAL}
+                  source={item.thumbnailUrl ? {uri: item.thumbnailUrl} : IMAGES.SERVICE_FACIAL}
                   style={styles.itemThumb}
                   resizeMode="cover"
                 />
                 <View style={styles.itemMetaColumn}>
                   <Text maxFontSizeMultiplier={1.3} style={styles.itemTitle}>
-                    {item.title || "Classic Manicure"}
+                    {item.title}
                   </Text>
                   <View style={styles.tagsMiniRow}>
-                    <View style={styles.pillTag}>
-                      <Text style={styles.pillTagText}>Nails</Text>
-                    </View>
-                    <Text style={styles.itemDuration}>⏱ 45 min</Text>
+                    {!!item.category && (
+                      <View style={styles.pillTag}>
+                        <Text style={styles.pillTagText}>{item.category}</Text>
+                      </View>
+                    )}
+                    {!!item.duration && <Text style={styles.itemDuration}>⏱ {item.duration}</Text>}
                   </View>
                   <View style={styles.priceRow}>
-                    <Text style={styles.itemPriceSmall}>₹245.00</Text>
-                    <Text style={styles.strikethroughPrice}>₹445.00</Text>
+                    <Text style={styles.itemPriceSmall}>₹{item.discountPrice.toFixed(2)}</Text>
+                    {item.originalPrice > item.discountPrice && (
+                      <Text style={styles.strikethroughPrice}>₹{item.originalPrice.toFixed(2)}</Text>
+                    )}
                   </View>
                 </View>
                 <View style={styles.addedBadge}>
@@ -172,9 +180,14 @@ export const ServiceCheckInScreen: React.FC<Props> = ({route, navigation}) => {
 
         {/* Action Button: End Service matching Home.png */}
         <View style={styles.endServiceBlock}>
+          {/* Ending a live service finalises billing, so it needs a deliberate press-and-hold. */}
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={handleEndService}
+            delayLongPress={END_SERVICE_HOLD_MS}
+            onPress={() => toast.info("Press and hold to end the service")}
+            onLongPress={handleEndService}
+            accessibilityRole="button"
+            accessibilityHint="Press and hold to end the service"
             style={styles.endServiceBtn}>
             <View style={styles.endServiceSquareDot} />
             <Text style={styles.endServiceBtnText}>
@@ -205,7 +218,10 @@ export const ServiceCheckInScreen: React.FC<Props> = ({route, navigation}) => {
       <EmergencySosModal
         visible={showSosModal}
         onCancel={() => setShowSosModal(false)}
-        onConfirmSos={() => setShowSosModal(false)}
+        onConfirmSos={() => {
+          setShowSosModal(false);
+          dialEmergency();
+        }}
       />
     </View>
   );
@@ -230,14 +246,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {

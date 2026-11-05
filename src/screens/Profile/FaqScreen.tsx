@@ -19,14 +19,15 @@ import {
   AppIcon,
 } from "../../components/common";
 import {useAuth} from "../../context/AuthContext";
-import {useCompany, useFaqs} from "../../hooks/queries";
+import {useCompany, useCreateTicket, useFaqs} from "../../hooks/queries";
 
 const digits = (s?: string) => (s ?? "").replace(/\D/g, "");
 
 export const FaqScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const {logout} = useAuth();
+  const {partner} = useAuth();
+  const createTicket = useCreateTicket();
   const faqQuery = useFaqs();
   const company = useCompany().data;
 
@@ -64,14 +65,30 @@ export const FaqScreen: React.FC = () => {
     open(n && `https://wa.me/${digits(n)}`, n);
   };
 
+  // There is no self-service delete endpoint yet, so this files a real support ticket that
+  // the team processes. We say exactly that, and never log the partner out or claim the
+  // account is already scheduled for deletion.
   const handleConfirmDelete = useCallback(() => {
     setShowDeleteModal(false);
-    Alert.alert(
-      "Account Deletion Scheduled",
-      "Your partner account has been scheduled for permanent deletion.",
-      [{text: "OK", onPress: () => logout()}]
+    if (createTicket.isPending) return;
+    createTicket.mutate(
+      {
+        subject: "Account deletion request",
+        description: "The partner has asked for their account and data to be permanently deleted.",
+        category: "Partner",
+        userName: partner?.fullName,
+        userPhone: partner?.phoneNumber,
+        userId: partner?.userId,
+      },
+      {
+        onSuccess: () =>
+          Alert.alert(
+            "Deletion request sent",
+            "Our team will verify your request and confirm with you before your account is removed. You can keep using the app until then.",
+          ),
+      },
     );
-  }, [logout]);
+  }, [createTicket, partner]);
 
   return (
     <ScreenContainer scrollable={false}>

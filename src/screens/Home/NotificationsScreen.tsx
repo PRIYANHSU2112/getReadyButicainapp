@@ -18,6 +18,8 @@ import {RootStackParamList} from "../../navigation/types";
 import {AppNotification} from "../../types";
 import {useNotifications} from "../../hooks/queries";
 import {notificationService} from "../../services/partnerService";
+import {AppIcon, EmptyState} from "../../components/common";
+import {palette} from "../../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Notifications">;
 
@@ -183,13 +185,13 @@ export const NotificationsScreen: React.FC<Props> = ({navigation}) => {
           {isLoading ? (
             <ActivityIndicator style={{marginTop: 40}} color="#114B3E" />
           ) : notifications.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyBellIcon}>🔔</Text>
-              <Text style={styles.emptyTitle}>No Notifications</Text>
-              <Text style={styles.emptySubtitle}>
-                You're all caught up! New booking alerts and updates will appear here.
-              </Text>
-            </View>
+            <EmptyState
+              icon={<AppIcon name="emergency" size={38} color={palette.brand.crimson} />}
+              title="Quiet for now"
+              subtitle="Your booking alerts and updates will appear here."
+              actionLabel="Go To Dashboard"
+              onAction={() => navigation.navigate("MainTabs", {screen: "DashboardTab"})}
+            />
           ) : (
             <>
               {/* Today Section */}
@@ -243,7 +245,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#FFF5F5",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -251,7 +253,7 @@ const styles = StyleSheet.create({
   backChevron: {
     fontSize: 22,
     lineHeight: 22,
-    color: "#EF4444",
+    color: "#B02B58",
     fontWeight: "700",
     marginTop: -2,
   },
@@ -387,28 +389,6 @@ const styles = StyleSheet.create({
   itemMessageText: {
     fontSize: 12.5,
     color: "#6B7280",
-    lineHeight: 18,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 80,
-  },
-  emptyBellIcon: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: "#6B7280",
-    textAlign: "center",
-    marginTop: 6,
-    paddingHorizontal: 30,
     lineHeight: 18,
   },
 });

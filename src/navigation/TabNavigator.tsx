@@ -1,4 +1,5 @@
 import React from "react";
+import {palette} from "../theme";
 import {StyleSheet, View, Text, TouchableOpacity} from "react-native";
 import {createBottomTabNavigator, BottomTabBarProps} from "@react-navigation/bottom-tabs";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   tabIconActive: {
-    color: "#114B3E",
+    color: palette.brand.green,
   },
   tabLabel: {
     fontSize: 11,
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tabLabelActive: {
-    color: "#114B3E",
+    color: palette.brand.green,
     fontWeight: "700",
   },
   centerButtonWrapper: {
@@ -195,10 +196,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#114B3E", // Deep emerald matching screenshots
+    backgroundColor: palette.brand.green, // Deep emerald matching screenshots
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#114B3E",
+    shadowColor: palette.brand.green,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.35,
     shadowRadius: 6,

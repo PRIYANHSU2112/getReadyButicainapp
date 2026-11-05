@@ -1,9 +1,19 @@
 /**
- * Color Tokens — Beautician Partner App
- * Brand: Deep Emerald Green #0A3F2F + Gold Accent #D4AF37
+ * Color Tokens - Beautician Partner App
+ * Brand: Deep Emerald Green #114B44 + Crimson #B02B58 (sampled from the Figma exports).
+ * Gold is reserved for the partner tier badge, as in the designs.
  * Mirrors getReadyApp palette architecture exactly.
  */
 export const palette = {
+  // Figma brand colors. Prefer these over hardcoding hex in screens.
+  brand: {
+    green: '#114B44',
+    greenDark: '#043C36',
+    crimson: '#B02B58',
+    crimsonTint: '#FAEDF1',
+    mint: '#E8F4F2',
+    sos: '#BA1A1A',
+  },
   emerald: {
     50: '#F0FAF5', 100: '#D1F0E0', 200: '#A3E1C1', 300: '#5FC99A',
     400: '#22A56E', 500: '#0A7C4E', 600: '#0A6B43', 700: '#085636',

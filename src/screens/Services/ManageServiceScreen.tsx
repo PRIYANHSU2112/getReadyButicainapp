@@ -127,7 +127,9 @@ export const ManageServiceScreen: React.FC<Props> = ({navigation, route}) => {
           <View style={styles.metaItem}>
             <Text style={styles.metaStarIcon}>⭐</Text>
             <Text style={styles.metaText}>
-              {service.rating} ({service.reviewsCount} reviews)
+              {service.reviewsCount > 0
+                ? `${service.rating.toFixed(1)} (${service.reviewsCount} ${service.reviewsCount === 1 ? "review" : "reviews"})`
+                : "No ratings yet"}
             </Text>
           </View>
         </View>
@@ -162,23 +164,18 @@ export const ManageServiceScreen: React.FC<Props> = ({navigation, route}) => {
           </View>
         </View>
 
+        {/* ========================================================================= */}
+        {/* SERVICE REVIEW SECTION matching Image 3 — only when real reviews exist     */}
+        {/* ========================================================================= */}
+        {(service.reviews ?? []).length > 0 && (
+        <>
         <View style={styles.divider} />
-
-        {/* ========================================================================= */}
-        {/* SERVICE REVIEW SECTION matching Image 3 */}
-        {/* ========================================================================= */}
         <View style={styles.sectionBlock}>
           <View style={styles.reviewsHeaderRow}>
             <View style={styles.reviewHeadingWithAccent}>
               <View style={styles.greenAccentBar} />
               <Text style={styles.sectionHeading}>Service Review</Text>
             </View>
-            <TouchableOpacity
-              onPress={() =>
-                Alert.alert("All Reviews", `Viewing all ${service.reviewsCount} verified reviews.`)
-              }>
-              <Text style={styles.viewAllReviewsText}>View All ›</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Horizontal Review Cards Carousel matching Image 3 */}
@@ -208,6 +205,8 @@ export const ManageServiceScreen: React.FC<Props> = ({navigation, route}) => {
             ))}
           </ScrollView>
         </View>
+        </>
+        )}
 
         {/* Active Toggle Action Card */}
         <View style={styles.statusToggleCard}>
@@ -261,14 +260,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {

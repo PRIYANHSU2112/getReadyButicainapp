@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
-import {StyleSheet, Text, View, ActivityIndicator} from "react-native";
+import {StyleSheet, Text, View, ActivityIndicator, Dimensions} from "react-native";
 import {useTheme} from "../../theme";
+import {AppIcon} from "../../components/common";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
 import {useAuth} from "../../context/AuthContext";
@@ -27,54 +28,91 @@ export const SplashScreen: React.FC<Props> = ({navigation}) => {
   }, [isAuthenticated, isRestoring, partner, navigation]);
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.colors.primary}]}>
-      <View style={styles.centerBox}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoIcon}>✂️</Text>
+    <View style={styles.container}>
+      {/* Green top panel with the peaked lower edge from the Figma splash */}
+      <View style={[styles.topPanel, {backgroundColor: theme.colors.primary}]}>
+        <View style={styles.logoFrame}>
+          <AppIcon name="user" size={44} color="#FFFFFF" />
         </View>
-        <Text style={[styles.title, {color: theme.colors.gold}]}>GetReady</Text>
-        <Text style={styles.partnerSubtitle}>PARTNER & BEAUTICIAN APP</Text>
+        <View
+          style={[
+            styles.peak,
+            {
+              borderLeftWidth: SCREEN_WIDTH / 2,
+              borderRightWidth: SCREEN_WIDTH / 2,
+              borderBottomWidth: PEAK_HEIGHT,
+            },
+          ]}
+        />
       </View>
-      <ActivityIndicator size="small" color={theme.colors.gold} style={styles.loader} />
+
+      <View style={styles.wordmarkBox}>
+        <Text style={styles.wordmark} accessibilityRole="header">
+          <Text style={{color: theme.colors.primary}}>GET </Text>
+          <Text style={{color: theme.colors.crimson}}>READY</Text>
+        </Text>
+        <Text style={styles.tagline}>Beauty salon at home</Text>
+      </View>
+
+      <ActivityIndicator size="small" color={theme.colors.primary} style={styles.loader} />
     </View>
   );
 };
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const PEAK_HEIGHT = 56;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  topPanel: {
+    height: "44%",
     alignItems: "center",
     justifyContent: "center",
   },
-  centerBox: {
-    alignItems: "center",
+  // White triangle sitting on the bottom edge of the panel creates the peak.
+  peak: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+    borderStyle: "solid",
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#FFFFFF",
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+  logoFrame: {
+    width: 64,
+    height: 64,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: PEAK_HEIGHT / 2,
   },
-  logoIcon: {
-    fontSize: 40,
+  wordmarkBox: {
+    alignItems: "center",
+    marginTop: 56,
   },
-  title: {
-    fontSize: 34,
+  wordmark: {
+    fontSize: 38,
     fontWeight: "800",
-    letterSpacing: 1.2,
+    letterSpacing: 0.5,
   },
-  partnerSubtitle: {
-    fontSize: 11,
-    color: "#E0E0E0",
-    letterSpacing: 2,
-    marginTop: 6,
-    fontWeight: "600",
+  tagline: {
+    marginTop: 2,
+    fontSize: 12.5,
+    letterSpacing: 3,
+    color: "#1F2937",
+    fontWeight: "500",
   },
   loader: {
     position: "absolute",
     bottom: 48,
+    alignSelf: "center",
   },
 });

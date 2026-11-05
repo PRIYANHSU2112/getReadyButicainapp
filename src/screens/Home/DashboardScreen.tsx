@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  Alert,
   RefreshControl,
 } from "react-native";
 import {BottomTabScreenProps} from "@react-navigation/bottom-tabs";
@@ -21,6 +20,10 @@ import {useBooking} from "../../context/BookingContext";
 import {useLocation} from "../../context/LocationContext";
 import {distanceKm, hasCoords} from "../../utils/geo";
 import {isRealImage} from "../../utils/files";
+import {nextTier, tierFor} from "../../utils/tier";
+import {dialEmergency} from "../../utils/emergency";
+import {palette} from "../../theme";
+import {OfflineState} from "../../components/home";
 import {IMAGES} from "../../constants/images";
 import {IncomingBookingData} from "../../types";
 import {useHomeServices, useHomeSummary, useNotifications, useUpcomingBookings} from "../../hooks/queries";
@@ -41,7 +44,7 @@ const inr = (n?: number) => Math.round(n ?? 0).toLocaleString("en-IN");
 export const DashboardScreen: React.FC<Props> = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const {partner} = useAuth();
-  const {dutyStatus, toggleDuty} = usePartner();
+  const {dutyStatus, dutyUpdating, setDutyStatus, toggleDuty} = usePartner();
 
   const {bookings, acceptBooking} = useBooking();
   const {currentLocation, refreshLocation} = useLocation();
@@ -56,6 +59,22 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
   const hasUnread = useMemo(() => notifications.data?.some(n => n.isUnread) ?? false, [notifications.data]);
   const upcomingList = upcoming.data ?? [];
   const serviceList = services.data ?? [];
+
+  // Same derivation as the Profile tab. An unrated partner has no rating, so show "—"
+  // rather than a number the server seeded.
+  const completedTotal = s?.completedBookingsTotal ?? partner?.totalBookings ?? 0;
+  const ratingCount = s?.ratingCount ?? 0;
+  const ratingValue = ratingCount > 0 ? s?.rating ?? partner?.rating ?? 0 : 0;
+  const ratingLabel = ratingCount > 0 ? ratingValue.toFixed(1) : "—";
+  const tier = tierFor(completedTotal, ratingValue);
+  const upNext = nextTier(completedTotal, ratingValue);
+  const milestoneText = upNext
+    ? upNext.remaining > 0
+      ? `You're ${upNext.remaining} booking${upNext.remaining === 1 ? "" : "s"} away from ${upNext.label}`
+      : `Reach a ${upNext.minRating.toFixed(1)}★ rating to unlock ${upNext.label}`
+    : isOnline
+    ? "You're on duty — new bookings will appear here"
+    : "Go online to start receiving bookings";
 
   // Incoming booking popup: newest assigned booking the partner hasn't acted on yet.
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set());
@@ -100,6 +119,15 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
 
   const handleDutyToggle = toggleDuty;
 
+  const refreshControl = (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor={palette.brand.green}
+      colors={[palette.brand.green]}
+    />
+  );
+
   const dismissIncoming = (id: string) => setDismissed(prev => new Set(prev).add(id));
 
   const handleAcceptBooking = (booking: IncomingBookingData) => {
@@ -143,7 +171,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
               Hi, {partner?.fullName ? partner.fullName.split(" ")[0] : "there"}
             </Text>
             <View style={styles.statusBadgesRow}>
-              <Text style={styles.goldExpertTag}>⭐ Gold Expert</Text>
+              {!!tier && <Text style={styles.goldExpertTag}>⭐ {tier}</Text>}
               <View style={styles.statusDotRow}>
                 <View style={[styles.onlineDot, !isOnline && styles.offlineDot]} />
                 <Text style={styles.onlineStatusText}>
@@ -176,6 +204,15 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
         </View>
       </View>
 
+      {!isOnline ? (
+        // Off duty: Figma shows the "closed" state instead of the day's numbers.
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.offlineContent}
+          refreshControl={refreshControl}>
+          <OfflineState onGoOnline={() => setDutyStatus("online")} busy={dutyUpdating} />
+        </ScrollView>
+      ) : (
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -183,7 +220,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
           {paddingBottom: Math.max(insets.bottom + 84, 96)},
         ]}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#114B3E" colors={["#114B3E"]} />}>
+        refreshControl={refreshControl}>
         {/* ========================================================================= */}
         {/* HERO EARNINGS CARD matching Image 5 */}
         {/* ========================================================================= */}
@@ -194,7 +231,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
               <Text style={styles.earningsAmount}>₹{inr(s?.todayEarnings)}</Text>
             </View>
             <View style={styles.ratingBadge}>
-              <Text style={styles.ratingText}>★ {(s?.rating ?? partner?.rating ?? 0).toFixed(1)}</Text>
+              <Text style={styles.ratingText}>★ {ratingLabel}</Text>
             </View>
           </View>
 
@@ -219,9 +256,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
           {/* Bottom Milestone Banner */}
           <View style={styles.milestoneBanner}>
             <Text style={styles.milestoneIcon}>🛡️</Text>
-            <Text style={styles.milestoneText}>
-              {isOnline ? "You're on duty — new bookings will appear here" : "Go online to start receiving bookings"}
-            </Text>
+            <Text style={styles.milestoneText}>{milestoneText}</Text>
           </View>
         </View>
 
@@ -329,8 +364,8 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.overviewCardIcon}>⭐</Text>
             <Text style={styles.overviewCardLabel}>Rating</Text>
             <Text style={styles.overviewCardValue}>
-              {(s?.rating ?? partner?.rating ?? 0).toFixed(1)}
-              {s?.ratingCount ? ` (${s.ratingCount})` : ""}
+              {ratingLabel}
+              {ratingCount ? ` (${ratingCount})` : ""}
             </Text>
           </View>
 
@@ -338,7 +373,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
           <View style={styles.overviewCard}>
             <Text style={styles.overviewCardIcon}>✅</Text>
             <Text style={styles.overviewCardLabel}>Completed</Text>
-            <Text style={styles.overviewCardValue}>{partner?.totalBookings ?? s?.completedBookingsToday ?? 0}</Text>
+            <Text style={styles.overviewCardValue}>{completedTotal}</Text>
           </View>
 
           {/* Card 4: Pending */}
@@ -415,6 +450,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
           ))}
         </View>
       </ScrollView>
+      )}
 
       {/* ========================================================================= */}
       {/* FLOATING RED SOS BUTTON matching Image 4 */}
@@ -432,11 +468,7 @@ export const DashboardScreen: React.FC<Props> = ({navigation}) => {
           if (isOnline) {
             toggleDuty();
           }
-          Alert.alert(
-            "Emergency SOS Dispatched 🚨",
-            "Emergency Response Team, Police Helpline (112), and your verified safety contacts have received your live location and status. Stay safe.",
-            [{text: "Understood", style: "destructive"}]
-          );
+          dialEmergency();
         }}
       />
 
@@ -549,6 +581,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
+  },
+  offlineContent: {
+    flexGrow: 1,
+    paddingBottom: 96,
   },
   heroEarningsCard: {
     backgroundColor: "#114B3E", // Deep luxury emerald

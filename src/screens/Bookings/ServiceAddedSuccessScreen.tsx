@@ -10,6 +10,7 @@ import {
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
+import {DetailedServiceItem} from "../../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ServiceAddedSuccess">;
 
@@ -18,43 +19,14 @@ export const ServiceAddedSuccessScreen: React.FC<Props> = ({
   navigation,
 }) => {
   const insets = useSafeAreaInsets();
-  const {bookingId, addedItems} = route.params || {
-    bookingId: "bk-101",
-    addedItems: [],
-  };
+  const {bookingId, addedItems} = route.params;
 
   const handleResume = () => {
-    // Return to ServiceCheckIn with the updated extra items, matching Resume.png
-    navigation.navigate("ServiceCheckIn", {
-      bookingId,
-      extraItems: addedItems && addedItems.length > 0 ? addedItems : [
-        {
-          id: "extra-1",
-          title: "Classic Manicure",
-          category: "Nails",
-          duration: "45 min",
-          discountPrice: 245,
-          originalPrice: 445,
-        },
-        {
-          id: "extra-2",
-          title: "Classic Manicure",
-          category: "Nails",
-          duration: "45 min",
-          discountPrice: 245,
-          originalPrice: 445,
-        },
-      ],
-    });
+    // Return to ServiceCheckIn with the items the customer approved, matching Resume.png
+    navigation.navigate("ServiceCheckIn", {bookingId, extraItems: addedItems});
   };
 
-  const displayItems =
-    addedItems && addedItems.length > 0
-      ? addedItems
-      : [
-          {title: "Mini Glow Cleanup Package", subtitle: "Base Service", price: 1500},
-          {title: "Mini Glow Cleanup Package", subtitle: "Base Service", price: 1500},
-        ];
+  const displayItems = (addedItems as DetailedServiceItem[]) ?? [];
 
   return (
     <View style={styles.screenContainer}>
@@ -101,21 +73,19 @@ export const ServiceAddedSuccessScreen: React.FC<Props> = ({
         {/* Item added Section matching Booking Summary & Earnings.png */}
         <View style={styles.itemsSection}>
           <Text maxFontSizeMultiplier={1.3} style={styles.sectionHeading}>
-            Item addeD
+            Items Added
           </Text>
 
           {displayItems.map((item, idx) => (
-            <View key={`added-item-${idx}`} style={styles.itemRowCard}>
+            <View key={`added-item-${item.id ?? idx}`} style={styles.itemRowCard}>
               <View style={styles.itemTexts}>
                 <Text maxFontSizeMultiplier={1.3} style={styles.itemTitle}>
                   {item.title}
                 </Text>
-                <Text style={styles.itemSubtitle}>
-                  {item.subtitle || "Base Service"}
-                </Text>
+                {!!item.category && <Text style={styles.itemSubtitle}>{item.category}</Text>}
               </View>
               <Text style={styles.itemPrice}>
-                ₹{(item.price || item.discountPrice || 1500).toLocaleString("en-IN")}
+                ₹{item.discountPrice.toLocaleString("en-IN")}
               </Text>
             </View>
           ))}
@@ -152,14 +122,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {

@@ -13,8 +13,8 @@ interface AuthContextType {
   phoneNumber: string;
   setPhoneNumber: (phone: string) => void;
   loginWithPhone: (phone: string) => Promise<boolean>;
-  resendOtp: () => Promise<void>;
-  verifyOtp: (otp: string) => Promise<boolean>;
+  resendOtp: (phoneOverride?: string) => Promise<void>;
+  verifyOtp: (otp: string, phoneOverride?: string) => Promise<boolean>;
   logout: () => void;
   updatePartner: (updated: Partial<PartnerProfile>) => void;
   reloadPartner: () => Promise<void>;
@@ -74,10 +74,14 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
     return true;
   }, []);
 
-  const resendOtp = useCallback(async () => { await authService.resendOtp(phoneNumber); }, [phoneNumber]);
+  const resendOtp = useCallback(async (phoneOverride?: string) => {
+    const phone = (phoneOverride || phoneNumber || "").trim();
+    await authService.resendOtp(phone);
+  }, [phoneNumber]);
 
-  const verifyOtp = useCallback(async (otp: string) => {
-    await authService.verifyOtp(phoneNumber, otp);
+  const verifyOtp = useCallback(async (otp: string, phoneOverride?: string) => {
+    const phone = (phoneOverride || phoneNumber || "").trim();
+    await authService.verifyOtp(phone, otp);
     setPartner(await loadProfile());
     setIsAuthenticated(true);
     return true;

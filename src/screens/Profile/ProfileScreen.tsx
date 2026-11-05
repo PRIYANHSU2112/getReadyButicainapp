@@ -15,21 +15,13 @@ import {
   ScreenContainer,
   Header,
   LogoutModal,
-  DeleteAccountModal,
   AppIcon,
   AppIconName,
 } from "../../components/common";
 import {useAuth} from "../../context/AuthContext";
 import {useHomeSummary} from "../../hooks/queries";
 import {isRealImage} from "../../utils/files";
-
-// Tier from lifetime completed services — matches the dashboard's "Gold Expert" badge.
-const tierFor = (completed: number, rating: number): string | null => {
-  if (completed >= 500 && rating >= 4.5) return "PLATINUM EXPERT";
-  if (completed >= 100 && rating >= 4.2) return "GOLD EXPERT";
-  if (completed >= 25) return "SILVER EXPERT";
-  return completed > 0 ? "NEW PARTNER" : null;
-};
+import {tierFor} from "../../utils/tier";
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -50,7 +42,6 @@ export const ProfileScreen: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleLanguageChange = useCallback(() => {
     Alert.alert("Select Language", "Choose your preferred interface language:", [
@@ -64,15 +55,6 @@ export const ProfileScreen: React.FC = () => {
   const handleConfirmLogout = useCallback(() => {
     setShowLogoutModal(false);
     logout();
-  }, [logout]);
-
-  const handleConfirmDelete = useCallback(() => {
-    setShowDeleteModal(false);
-    Alert.alert(
-      "Account Deletion Scheduled",
-      "Your partner account has been scheduled for deletion. We are sorry to see you go.",
-      [{text: "OK", onPress: () => logout()}]
-    );
   }, [logout]);
 
   return (
@@ -129,7 +111,7 @@ export const ProfileScreen: React.FC = () => {
             {!!tier && (
               <View style={styles.expertBadge}>
                 <Text style={styles.expertStar}>⭐</Text>
-                <Text style={styles.expertText}>{tier}</Text>
+                <Text style={styles.expertText}>{tier.toUpperCase()}</Text>
               </View>
             )}
           </View>
@@ -287,13 +269,6 @@ export const ProfileScreen: React.FC = () => {
         visible={showLogoutModal}
         onCancel={() => setShowLogoutModal(false)}
         onConfirmLogout={handleConfirmLogout}
-      />
-
-      {/* DELETE ACCOUNT MODAL */}
-      <DeleteAccountModal
-        visible={showDeleteModal}
-        onCancel={() => setShowDeleteModal(false)}
-        onConfirmDelete={handleConfirmDelete}
       />
     </ScreenContainer>
   );

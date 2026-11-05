@@ -27,6 +27,8 @@ export interface ThemeColors {
   white: string; black: string; iconPrimary: string; iconSecondary: string;
   iconBrand: string; ratingStar: string; tagBackground: string; tagText: string; ripple: string;
   emerald: typeof palette.emerald;
+  // Figma brand accents: crimson for back chevrons/tags/wordmark, mint for active chips and status pills.
+  crimson: string; crimsonTint: string; mint: string; sos: string;
   gold: string; goldLight: string;
   textPlaceholder: string;
   disabledBackground: string; disabledText: string;
@@ -46,10 +48,10 @@ export interface AppTheme {
 export const lightTheme: AppTheme = {
   isDark: false,
   colors: {
-    primary: palette.emerald[500],
-    primaryLight: palette.emerald[100],
-    primaryDark: palette.emerald[700],
-    primaryContainer: palette.emerald[50],
+    primary: palette.brand.green,
+    primaryLight: palette.brand.mint,
+    primaryDark: palette.brand.greenDark,
+    primaryContainer: palette.brand.mint,
     onPrimary: palette.neutral[0],
     secondary: palette.gold.main,
     secondaryLight: palette.gold.light,
@@ -58,9 +60,9 @@ export const lightTheme: AppTheme = {
     surfaceHighlight: "#F7F8FA", surfaceVariant: "#F3F4F6", card: "#FFFFFF", cardBorder: "#F0F1F5",
     textPrimary: "#1F242C", textSecondary: "#5A6270", textMuted: "#94A0B0",
     textTertiary: "#9CA3AF",
-    textInverted: "#FFFFFF", textInverse: "#FFFFFF", textBrand: palette.emerald[500],
+    textInverted: "#FFFFFF", textInverse: "#FFFFFF", textBrand: palette.brand.green,
     inputBackground: "#F9FAFC", inputBorder: "#E5E7EB",
-    inputBorderFocused: palette.emerald[500], borderFocus: palette.emerald[500],
+    inputBorderFocused: palette.brand.green, borderFocus: palette.brand.green,
     inputPlaceholder: "#9CA3AF", textPlaceholder: "#9CA3AF", inputText: "#1F242C",
     border: "#E8EAED", borderLight: "#F3F4F6", divider: "#EDEFF2",
     success: palette.semantic.success, successLight: palette.semantic.successLight,
@@ -71,14 +73,16 @@ export const lightTheme: AppTheme = {
     offline: palette.semantic.offline, offlineLight: palette.semantic.offlineLight,
     onlineBadge: "#10B981", offlineBadge: "#9CA3AF",
     bottomNavBackground: "#FFFFFF", bottomNavBorder: "#EEF0F4",
-    bottomNavActive: palette.emerald[500], bottomNavInactive: "#9CA3AF",
+    bottomNavActive: palette.brand.green, bottomNavInactive: "#9CA3AF",
     modalBackground: "#FFFFFF", bottomSheetBackground: "#FFFFFF",
     overlay: "rgba(15,23,42,0.55)",
     white: "#FFFFFF", black: "#000000",
-    iconPrimary: "#1F242C", iconSecondary: "#6B7280", iconBrand: palette.emerald[500],
-    ratingStar: "#F59E0B", tagBackground: "#E8F5EE", tagText: palette.emerald[500],
-    ripple: "rgba(10,124,78,0.12)",
+    iconPrimary: "#1F242C", iconSecondary: "#6B7280", iconBrand: palette.brand.green,
+    ratingStar: "#F59E0B", tagBackground: palette.brand.mint, tagText: palette.brand.green,
+    ripple: "rgba(17,75,68,0.12)",
     emerald: palette.emerald,
+    crimson: palette.brand.crimson, crimsonTint: palette.brand.crimsonTint,
+    mint: palette.brand.mint, sos: palette.brand.sos,
     gold: palette.gold.main, goldLight: palette.gold.light,
     disabledBackground: "#E5E7EB", disabledText: "#9CA3AF",
   },

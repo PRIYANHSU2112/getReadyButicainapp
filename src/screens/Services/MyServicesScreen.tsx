@@ -16,6 +16,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {RootStackParamList} from "../../navigation/types";
 import {IMAGES} from "../../constants/images";
 import {CatalogStatus, DetailedServiceItem, PackageItem} from "../../types";
+import {palette} from "../../theme";
 import {useMyServices, usePackages} from "../../hooks/queries";
 
 import {Badge, ServiceUnderReviewModal} from "../../components/common";
@@ -72,6 +73,14 @@ export const MyServicesScreen: React.FC<Props> = ({navigation, route}) => {
       prev.map(srv => (srv.id === id ? {...srv, isEnabled: !srv.isEnabled} : srv))
     );
   };
+
+  // Only listings the admin has approved can be live, so only those are counted.
+  const summary = useMemo(() => {
+    const list: Array<{status: CatalogStatus; isEnabled: boolean}> = activeTab === "individual" ? services : packages;
+    const live = list.filter(i => i.status === "approved");
+    const active = live.filter(i => i.isEnabled).length;
+    return {active, paused: live.length - active, total: live.length};
+  }, [activeTab, services, packages]);
 
   const isLoading = servicesQuery.isLoading || packagesQuery.isLoading;
   const loadError = servicesQuery.error ?? packagesQuery.error;
@@ -264,6 +273,20 @@ export const MyServicesScreen: React.FC<Props> = ({navigation, route}) => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Active / Paused summary for whichever tab is showing */}
+        {!isLoading && !loadError && summary.total > 0 && (
+          <View style={styles.summaryRow} accessible accessibilityLabel={`${summary.active} active, ${summary.paused} paused`}>
+            <View style={[styles.summaryCard, styles.summaryCardActive]}>
+              <Text style={styles.summaryLabel}>Active</Text>
+              <Text style={styles.summaryValue}>{summary.active}</Text>
+            </View>
+            <View style={[styles.summaryCard, styles.summaryCardPaused]}>
+              <Text style={styles.summaryLabel}>Paused</Text>
+              <Text style={styles.summaryValue}>{summary.paused}</Text>
+            </View>
+          </View>
+        )}
 
         {/* ========================================================================= */}
         {/* SEARCH BAR matching Images 1 & 5 */}
@@ -528,14 +551,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48", // Rose red accent matching Image 1 & 5
+    color: "#B02B58", // Rose red accent matching Image 1 & 5
     fontWeight: "700",
   },
   headerTitle: {
@@ -953,6 +976,38 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  summaryRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderLeftWidth: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  summaryCardActive: {
+    borderLeftColor: palette.brand.green,
+  },
+  summaryCardPaused: {
+    borderLeftColor: palette.brand.crimson,
+  },
+  summaryLabel: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  summaryValue: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#111827",
+    marginTop: 2,
   },
   packageStatusRow: {
     flexDirection: "row",

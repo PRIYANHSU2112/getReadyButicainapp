@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef, useCallback} from "react";
+import {palette} from "../../theme";
 import {
   View,
   Image,
@@ -112,12 +113,12 @@ export const OTPScreen: React.FC<Props> = ({navigation, route}) => {
     setError("");
     setOtpDigits(Array(OTP_LENGTH).fill(""));
     try {
-      await resendOtp();
+      await resendOtp(rawPhone);
       toast.success("A new OTP has been sent");
     } catch (err: any) {
       setError(err?.message || "Could not resend OTP.");
     }
-  }, [canResend, resendOtp]);
+  }, [canResend, resendOtp, rawPhone]);
 
   const handleVerify = useCallback(async () => {
     if (loading) return;
@@ -131,14 +132,14 @@ export const OTPScreen: React.FC<Props> = ({navigation, route}) => {
     setLoading(true);
 
     try {
-      await verifyOtp(fullOtp);
+      await verifyOtp(fullOtp, rawPhone);
       setLoading(false);
       // Auth state update triggers RootNavigator conditional screen rendering
     } catch (err: any) {
       setLoading(false);
       setError(err?.message || "Invalid OTP code. Please try again.");
     }
-  }, [loading, otpDigits, verifyOtp]);
+  }, [loading, otpDigits, verifyOtp, rawPhone]);
 
   return (
     <View style={styles.screenContainer}>
@@ -268,7 +269,7 @@ export const OTPScreen: React.FC<Props> = ({navigation, route}) => {
               {loading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.verifyButtonText}>Get OTP</Text>
+                <Text style={styles.verifyButtonText}>Verify OTP</Text>
               )}
             </TouchableOpacity>
 
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
     height: HERO_SPACER_HEIGHT,
   },
   formContent: {
-    paddingHorizontal: 28,
+    paddingHorizontal: 16,
     alignItems: "center",
     paddingTop: 8,
   },
@@ -356,13 +357,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     width: "100%",
     marginVertical: 4,
   },
   otpBox: {
-    width: 46,
-    height: 54,
+    width: 42,
+    height: 50,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: "#CBD5E1",
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   otpBoxFocused: {
-    borderColor: "#114B3E",
+    borderColor: palette.brand.green,
     borderWidth: 2,
   },
   otpBoxError: {
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   resendAction: {
     fontSize: 12.5,
     fontWeight: "700",
-    color: "#114B3E", // Dark emerald
+    color: palette.brand.green, // Dark emerald
   },
   resendDisabled: {
     color: "#9CA3AF",
@@ -421,11 +422,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
     borderRadius: 10,
-    backgroundColor: "#114B3E", // Deep emerald green matching Figma
+    backgroundColor: palette.brand.green, // Deep emerald green matching Figma
     alignItems: "center",
     justifyContent: "center",
     marginTop: 18,
-    shadowColor: "#114B3E",
+    shadowColor: palette.brand.green,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   termsHighlight: {
-    color: "#114B3E",
+    color: palette.brand.green,
     fontWeight: "600",
   },
 });

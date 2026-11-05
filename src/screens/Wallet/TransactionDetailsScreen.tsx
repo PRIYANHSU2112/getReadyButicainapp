@@ -15,6 +15,12 @@ import {ScreenContainer, Header, TransactionItem} from "../../components/common"
 import {useTransaction} from "../../hooks/queries";
 import {useAuth} from "../../context/AuthContext";
 
+const STATUS_VIEW: Record<NonNullable<TransactionItem["status"]>, {label: string; glyph: string; color: string}> = {
+  completed: {label: "Completed", glyph: "✓", color: "#16A34A"},
+  processing: {label: "Processing", glyph: "…", color: "#D97706"},
+  failed: {label: "Failed", glyph: "!", color: "#DC2626"},
+};
+
 export const TransactionDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RootStackParamList, "TransactionDetails">>();
@@ -42,16 +48,17 @@ export const TransactionDetailsScreen: React.FC = () => {
   const isDebit = tx.type === "debit";
   const formattedAmount =`₹${Math.abs(tx.amount).toLocaleString("en-IN")}`;
   const initial = (tx.customerName || "P").charAt(0).toUpperCase();
+  const status = STATUS_VIEW[tx.status ?? "completed"];
 
   const handleShare = useCallback(async () => {
     try {
       await Share.share({
-        message: `Transaction Receipt\nAmount: ${formattedAmount}\nStatus: ${tx.status || "Completed"}\nTransaction ID: ${tx.referenceId}\nPaid to: ${tx.type === "debit" ? tx.bankName || "Bank account" : myName}\nDate: ${tx.dateTime}`,
+        message: `Transaction Receipt\nAmount: ${formattedAmount}\nStatus: ${status.label}\nTransaction ID: ${tx.referenceId}\nPaid to: ${tx.type === "debit" ? tx.bankName || "Bank account" : myName}\nDate: ${tx.dateTime}`,
       });
     } catch {
       // Share sheet dismissed
     }
-  }, [formattedAmount, tx, myName]);
+  }, [formattedAmount, tx, myName, status.label]);
 
   const handleHavingIssues = useCallback(() => {
     Alert.alert(
@@ -91,38 +98,34 @@ export const TransactionDetailsScreen: React.FC = () => {
         <Text style={styles.customerName}>{tx.customerName || (isDebit ? "Withdrawal" : "Customer")}</Text>
         <Text style={styles.amountText}>{formattedAmount}</Text>
         <Text style={styles.paymentMethodText}>
-          {tx.type === "credit" ? "Payment from PhonePe" : "Transferred to Bank Account"}
+          {tx.type === "credit" ? "Credited to your wallet" : "Transferred to Bank Account"}
         </Text>
 
-        {/* COMPLETED STATUS BADGE */}
+        {/* STATUS BADGE: reflects the real transaction state, never assumed "Completed" */}
         <View style={styles.statusRow}>
-          <View style={styles.checkIconBox}>
-            <Text style={styles.checkIcon}>✓</Text>
+          <View style={[styles.checkIconBox, {backgroundColor: status.color}]}>
+            <Text style={styles.checkIcon}>{status.glyph}</Text>
           </View>
-          <Text style={styles.statusText}>Completed</Text>
+          <Text style={styles.statusText}>{status.label}</Text>
         </View>
 
-        <Text style={styles.dateTimestamp}>{tx.dateTime || "23 Jul 2026, 12:04 am"}</Text>
+        {!!tx.dateTime && <Text style={styles.dateTimestamp}>{tx.dateTime}</Text>}
 
         {/* WHITE DETAILS CARD */}
         <View style={styles.detailsCard}>
-          {/* BANK ROW */}
-          <View style={styles.bankRow}>
-            <View style={styles.bankLogoBox}>
-              <Text style={styles.bankLogoIcon}>🏛️</Text>
-            </View>
-            <Text style={styles.bankNameText}>
-              {tx.bankName || "Punjab National Bank 2509"}
-            </Text>
-          </View>
+          {/* BANK ROW: only when the transaction actually involves a bank */}
+          {!!tx.bankName && (
+            <>
+              <View style={styles.bankRow}>
+                <View style={styles.bankLogoBox}>
+                  <Text style={styles.bankLogoIcon}>🏛️</Text>
+                </View>
+                <Text style={styles.bankNameText}>{tx.bankName}</Text>
+              </View>
 
-          <View style={styles.cardDivider} />
-
-          {/* UPI TRANSACTION ID */}
-          <View style={styles.fieldBlock}>
-            <Text style={styles.fieldLabel}>UPI TRANSACTION ID</Text>
-            <Text style={styles.fieldValue}>{tx.referenceId || "—"}</Text>
-          </View>
+              <View style={styles.cardDivider} />
+            </>
+          )}
 
           {/* TO */}
           <View style={styles.fieldBlock}>
@@ -145,7 +148,7 @@ export const TransactionDetailsScreen: React.FC = () => {
           {/* TRANSACTION ID */}
           <View style={[styles.fieldBlock, {marginBottom: 0}]}>
             <Text style={styles.fieldLabel}>TRANSACTION ID</Text>
-            <Text style={styles.fieldValue}>{tx.referenceId || "CICAgJjJ3vHyPQ"}</Text>
+            <Text style={styles.fieldValue}>{tx.referenceId || "—"}</Text>
           </View>
         </View>
 

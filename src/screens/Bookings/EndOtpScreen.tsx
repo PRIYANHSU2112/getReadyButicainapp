@@ -12,6 +12,7 @@ import {
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../../navigation/types";
+import {SERVICE_OTP_MAX_LENGTH, SERVICE_OTP_MIN_LENGTH} from "../../constants/otp";
 import {useBooking} from "../../context/BookingContext";
 import {useAddOnCashCollected, useBookingDetail} from "../../hooks/queries";
 
@@ -58,10 +59,10 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
   const [resending, setResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
 
-  const isOtpComplete = otp.length === 4;
+  const isOtpComplete = otp.length >= SERVICE_OTP_MIN_LENGTH;
 
   const handleKeyPress = (digit: string) => {
-    if (otp.length < 4) {
+    if (otp.length < SERVICE_OTP_MAX_LENGTH) {
       setOtp(prev => prev + digit);
     }
   };
@@ -71,8 +72,8 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
   };
 
   const handleFinalize = async () => {
-    if (otp.length !== 4) {
-      Alert.alert("Incomplete OTP", "Please collect the 4-digit completion OTP from the customer.");
+    if (otp.length < SERVICE_OTP_MIN_LENGTH || otp.length > SERVICE_OTP_MAX_LENGTH) {
+      Alert.alert("Incomplete OTP", "Please collect the completion OTP from the customer.");
       return;
     }
 
@@ -104,12 +105,7 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
     setTimeout(() => setResendStatus(null), 5000);
   };
 
-  const digits = [
-    otp[0] || "",
-    otp[1] || "",
-    otp[2] || "",
-    otp[3] || "",
-  ];
+  const digits = Array.from({length: SERVICE_OTP_MAX_LENGTH}, (_, i) => otp[i] || "");
 
   return (
     <View style={[styles.container, {paddingTop: insets.top}]}>
@@ -211,7 +207,7 @@ export const EndOtpScreen: React.FC<Props> = ({route, navigation}) => {
         {/* Headline & Instructions */}
         <Text style={styles.mainTitle}>Enter Completion OTP</Text>
         <Text style={styles.mainSubtitle}>
-          Collect the 4-digit completion OTP from the customer to finalize the appointment and initiate the payment transfer.
+          Collect the completion OTP from the customer to finalize the appointment and initiate the payment transfer.
         </Text>
 
         {/* OTP Input Field Box Area */}
@@ -583,12 +579,15 @@ const styles = StyleSheet.create({
   },
   otpBoxesRow: {
     flexDirection: "row",
+    alignSelf: "stretch",
     justifyContent: "center",
-    gap: 12,
+    gap: 8,
   },
+  // Boxes share the row, so six fit even on a narrow phone; maxWidth keeps them tidy on wide ones.
   otpBox: {
-    width: 58,
-    height: 62,
+    flex: 1,
+    maxWidth: 46,
+    height: 52,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: "#CBD5E1",

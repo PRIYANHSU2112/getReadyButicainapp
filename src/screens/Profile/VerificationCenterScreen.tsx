@@ -1,5 +1,6 @@
-import React, {useState} from "react";
+import React, {useCallback, useState} from "react";
 import {
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -19,30 +20,32 @@ type VerificationStatus = "under_review" | "approved" | "rejected";
 
 export const VerificationCenterScreen: React.FC<Props> = ({navigation}) => {
   const insets = useSafeAreaInsets();
-  const {partner, updatePartner} = useAuth();
+  const {partner, reloadPartner} = useAuth();
 
-  // Derive initial status from partner profile or default to under_review
-  const initialStatus: VerificationStatus =
+  // The view is driven only by the server's verdict. It is never set from the UI,
+  // otherwise a partner could mark themselves verified.
+  const currentStatus: VerificationStatus =
     partner?.kycStatus === "approved"
       ? "approved"
       : partner?.kycStatus === "rejected"
       ? "rejected"
       : "under_review";
 
-  const [currentStatus, setCurrentStatus] = useState<VerificationStatus>(initialStatus);
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await reloadPartner();
+    } catch {
+      // Keep showing the last known status; pulling again retries.
+    } finally {
+      setRefreshing(false);
+    }
+  }, [reloadPartner]);
 
-  const handleStatusChange = (status: VerificationStatus) => {
-    setCurrentStatus(status);
-    const kycMap: Record<VerificationStatus, "submitted" | "approved" | "rejected"> = {
-      under_review: "submitted",
-      approved: "approved",
-      rejected: "rejected",
-    };
-    updatePartner({kycStatus: kycMap[status]});
-  };
-
+  // This button is only rendered when the server has approved the profile, at which
+  // point the navigator already exposes MainTabs.
   const handleGoToDashboard = () => {
-    updatePartner({kycStatus: "approved"});
     navigation.navigate("MainTabs", {screen: "DashboardTab"});
   };
 
@@ -79,59 +82,8 @@ export const VerificationCenterScreen: React.FC<Props> = ({navigation}) => {
         </View>
       </View>
 
-      {/* Demo Status Preview Switcher Bar */}
-      <View style={styles.stateSwitcherBar}>
-        <Text style={styles.switcherLabel}>Preview View:</Text>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => handleStatusChange("under_review")}
-          style={[
-            styles.switchChip,
-            currentStatus === "under_review" && styles.switchChipActiveAmber,
-          ]}>
-          <Text
-            style={[
-              styles.switchChipText,
-              currentStatus === "under_review" && styles.switchChipTextActiveAmber,
-            ]}>
-            Under Review
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => handleStatusChange("approved")}
-          style={[
-            styles.switchChip,
-            currentStatus === "approved" && styles.switchChipActiveGreen,
-          ]}>
-          <Text
-            style={[
-              styles.switchChipText,
-              currentStatus === "approved" && styles.switchChipTextActiveGreen,
-            ]}>
-            Verified
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => handleStatusChange("rejected")}
-          style={[
-            styles.switchChip,
-            currentStatus === "rejected" && styles.switchChipActiveRed,
-          ]}>
-          <Text
-            style={[
-              styles.switchChipText,
-              currentStatus === "rejected" && styles.switchChipTextActiveRed,
-            ]}>
-            Needs Attention
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#114B3E" colors={["#114B3E"]} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
@@ -361,61 +313,6 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginTop: 6,
     lineHeight: 18,
-  },
-  stateSwitcherBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: "#F9FAFB",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#F3F4F6",
-    marginBottom: 12,
-  },
-  switcherLabel: {
-    fontSize: 11.5,
-    fontWeight: "600",
-    color: "#6B7280",
-    marginRight: 8,
-  },
-  switchChip: {
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    marginRight: 6,
-  },
-  switchChipActiveAmber: {
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FCD34D",
-  },
-  switchChipActiveGreen: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#86EFAC",
-  },
-  switchChipActiveRed: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#FCA5A5",
-  },
-  switchChipText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#6B7280",
-  },
-  switchChipTextActiveAmber: {
-    color: "#B45309",
-    fontWeight: "700",
-  },
-  switchChipTextActiveGreen: {
-    color: "#15803D",
-    fontWeight: "700",
-  },
-  switchChipTextActiveRed: {
-    color: "#B91C1C",
-    fontWeight: "700",
   },
   scrollContent: {
     paddingHorizontal: 20,

@@ -16,11 +16,17 @@ export const typography: Record<string, TextStyle> = {
   h2:           {fontFamily:fontFamilies.bold, fontSize:20, lineHeight:28, fontWeight:"700", letterSpacing:-0.2},
   h3:           {fontFamily:fontFamilies.semiBold, fontSize:18, lineHeight:24, fontWeight:"700", letterSpacing:-0.2},
   title:        {fontFamily:fontFamilies.bold, fontSize:16, lineHeight:22, fontWeight:"700", letterSpacing:-0.1},
+  // h4/body1/body2/captionSmall are referenced across screens and shared components
+  // (Input, Badge, ...) but were never defined, so their styles silently dropped.
+  h4:           {fontFamily:fontFamilies.bold, fontSize:16, lineHeight:22, fontWeight:"700", letterSpacing:-0.1},
   subtitle:     {fontFamily:fontFamilies.medium, fontSize:14, lineHeight:20, fontWeight:"500"},
   body:         {fontFamily:fontFamilies.regular, fontSize:14, lineHeight:20, fontWeight:"400"},
+  body1:        {fontFamily:fontFamilies.regular, fontSize:14, lineHeight:20, fontWeight:"400"},
   bodyMedium:   {fontFamily:fontFamilies.medium, fontSize:14, lineHeight:20, fontWeight:"600"},
   bodySmall:    {fontFamily:fontFamilies.regular, fontSize:12.5, lineHeight:18, fontWeight:"400"},
+  body2:        {fontFamily:fontFamilies.regular, fontSize:12.5, lineHeight:18, fontWeight:"400"},
   caption:      {fontFamily:fontFamilies.regular, fontSize:11, lineHeight:15, fontWeight:"500", letterSpacing:0.3},
+  captionSmall: {fontFamily:fontFamilies.regular, fontSize:10, lineHeight:14, fontWeight:"600", letterSpacing:0.3},
   label:        {fontFamily:fontFamilies.semiBold, fontSize:11.5, lineHeight:16, fontWeight:"700", letterSpacing:0.6},
   button:       {fontFamily:fontFamilies.semiBold, fontSize:15, lineHeight:20, fontWeight:"700", letterSpacing:0.2},
   buttonSmall:  {fontFamily:fontFamilies.semiBold, fontSize:13, lineHeight:16, fontWeight:"600"},

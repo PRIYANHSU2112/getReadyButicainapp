@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
 } from "react-native";
+import {AppIcon} from "./AppIcon";
 
 interface DeleteAccountModalProps {
   visible: boolean;
@@ -47,7 +48,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = React.memo(
                 {/* Warning Icon Badge */}
                 <View style={styles.avatarWrapper}>
                   <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarEmoji}>👩‍🦰</Text>
+                    <AppIcon name="user" size={34} color="#B02B58" />
                   </View>
                   <View style={styles.badgeCrossCircle}>
                     <Text style={styles.crossIcon}>✕</Text>
@@ -63,9 +64,9 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = React.memo(
                     Are you sure you want to say goodbye?
                   </Text>
                   <Text style={styles.noticeDesc}>
-                    Deleting your account is permanent. Once you confirm, your entire
-                    salon-at-home history will be wiped clean, and we won't be able
-                    to recover it for you.
+                    Deleting your account is permanent. Our team will verify your
+                    request before anything is removed, and we won't be able to
+                    recover your data afterwards.
                   </Text>
                 </View>
 
@@ -78,40 +79,32 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = React.memo(
                   <View style={styles.bulletRow}>
                     <Text style={styles.bulletDot}>•</Text>
                     <Text style={styles.bulletText}>
-                      <Text style={styles.bulletBold}>Your Styling History: </Text>
-                      Access to your past bookings, favorite treatments, and receipts will be gone.
+                      <Text style={styles.bulletBold}>Your Work History: </Text>
+                      Your past bookings, earnings records and ratings will no longer be available.
                     </Text>
                   </View>
 
                   <View style={styles.bulletRow}>
                     <Text style={styles.bulletDot}>•</Text>
                     <Text style={styles.bulletText}>
-                      <Text style={styles.bulletBold}>Saved Stylists: </Text>
-                      You will lose your curated list of preferred professionals who know exactly how you like your hair, nails, or skin treated.
+                      <Text style={styles.bulletBold}>Profile & Documents: </Text>
+                      Your profile, verified documents and certificates will be removed.
                     </Text>
                   </View>
 
                   <View style={styles.bulletRow}>
                     <Text style={styles.bulletDot}>•</Text>
                     <Text style={styles.bulletText}>
-                      <Text style={styles.bulletBold}>Loyalty Points & Rewards: </Text>
-                      Any unused cashback, promo codes, or active membership perks will be permanently forfeited.
+                      <Text style={styles.bulletBold}>Wallet & Payouts: </Text>
+                      Withdraw any available balance before requesting deletion.
                     </Text>
                   </View>
 
                   <View style={styles.bulletRow}>
                     <Text style={styles.bulletDot}>•</Text>
                     <Text style={styles.bulletText}>
-                      <Text style={styles.bulletBold}>Saved Addresses & Payments: </Text>
-                      Your saved home/work addresses and secure payment methods will be completely erased.
-                    </Text>
-                  </View>
-
-                  <View style={styles.bulletRow}>
-                    <Text style={styles.bulletDot}>•</Text>
-                    <Text style={styles.bulletText}>
-                      <Text style={styles.bulletBold}>Pending Bookings: </Text>
-                      Any scheduled appointments will be immediately canceled (subject to our cancellation policy).
+                      <Text style={styles.bulletBold}>Upcoming Bookings: </Text>
+                      Scheduled appointments will need to be completed or cancelled first.
                     </Text>
                   </View>
                 </View>

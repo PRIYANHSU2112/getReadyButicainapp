@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from "react";
+import {palette} from "../../theme";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -37,7 +38,7 @@ export const BigDutySwitch: React.FC<BigDutySwitchProps> = ({
 
   const backgroundColor = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#374151", "#114B3E"], // Slate gray when offline, Deep emerald when online
+    outputRange: ["#374151", palette.brand.green], // Slate gray when offline, Deep emerald when online
   });
 
   return (

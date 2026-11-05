@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {
   StyleSheet,
   Text,
@@ -50,6 +50,14 @@ const EditPackageForm: React.FC<Props & {pkg: PackageItem}> = ({navigation, pkg}
   const [originalPrice, setOriginalPrice] = useState(String(pkg.originalPrice ?? ""));
   const [duration] = useState(pkg.duration ?? "");
   const [showReviewModal, setShowReviewModal] = useState(false);
+
+  // Live ±10% band around the fixed price, not a hardcoded example.
+  const priceBand = useMemo(() => {
+    const fixed = parseFloat(originalPrice);
+    if (!(fixed > 0)) return null;
+    const fmt = (n: number) => n.toLocaleString("en-IN", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    return {min: fmt(fixed * 0.9), max: fmt(fixed * 1.1)};
+  }, [originalPrice]);
 
   const handleAddInclusion = () => {
     setInclusions([...inclusions, ""]);
@@ -273,13 +281,15 @@ const EditPackageForm: React.FC<Props & {pkg: PackageItem}> = ({navigation, pkg}
             </View>
           </View>
 
-          <View style={styles.infoNoteBox}>
-            <Text style={styles.infoNoteIcon}>ℹ️</Text>
-            <Text style={styles.infoNoteText}>
-              Admin allows ±10% adjustment. Price can range from ₹315.00 to ₹385.00
-              based on your expertise level.
-            </Text>
-          </View>
+          {priceBand && (
+            <View style={styles.infoNoteBox}>
+              <Text style={styles.infoNoteIcon}>ℹ️</Text>
+              <Text style={styles.infoNoteText}>
+                Admin allows ±10% adjustment. Price can range from ₹{priceBand.min} to ₹
+                {priceBand.max} based on your expertise level.
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -335,14 +345,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {

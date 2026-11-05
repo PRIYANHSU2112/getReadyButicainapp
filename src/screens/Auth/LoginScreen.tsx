@@ -1,4 +1,5 @@
 import React, {useState, useCallback} from "react";
+import {palette} from "../../theme";
 import {
   View,
   Image,
@@ -92,18 +93,18 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
 
           {/* Form Content Area */}
           <View style={styles.formContent}>
-            {/* Title: Welcome back */}
+            {/* Title */}
             <Text
               maxFontSizeMultiplier={1.3}
               style={styles.welcomeTitle}>
-              Welcome back
+              Welcome, Beautician.
             </Text>
 
             {/* Subtitle */}
             <Text
               maxFontSizeMultiplier={1.3}
               style={styles.subtitleText}>
-              continue your journey of elegance, style{"\n"}and self-care.
+              Enter your registered mobile number to{"\n"}continue to your dashboard.
             </Text>
 
             {/* Phone Number Input Section */}
@@ -221,11 +222,10 @@ const styles = StyleSheet.create({
   },
   welcomeTitle: {
     fontSize: 24,
-    fontWeight: "700",
-    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    color: "#A61E4D", // Deep burgundy matching Figma logo
+    fontWeight: "800",
+    color: palette.brand.green, // Figma: deep green bold title
     letterSpacing: -0.2,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   subtitleText: {
     fontSize: 13,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   inputFocusedBorder: {
-    borderColor: "#114B3E",
+    borderColor: palette.brand.green,
   },
   inputErrorBorder: {
     borderColor: "#EF4444",
@@ -298,11 +298,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
     borderRadius: 10,
-    backgroundColor: "#114B3E", // Deep emerald green matching Figma
+    backgroundColor: palette.brand.green, // Deep emerald green matching Figma
     alignItems: "center",
     justifyContent: "center",
     marginTop: 20,
-    shadowColor: "#114B3E",
+    shadowColor: palette.brand.green,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   termsHighlight: {
-    color: "#114B3E", // Deep emerald accent
+    color: palette.brand.green, // Deep emerald accent
     fontWeight: "600",
   },
 });

@@ -80,8 +80,8 @@ export const EmergencySosModal: React.FC<EmergencySosModalProps> = ({
 
           {/* Subtitle matching Image 2 */}
           <Text maxFontSizeMultiplier={1.3} style={styles.dialogSubtitle}>
-            You will stop receiving real-time booking notifications and access to
-            your service dashboard until you sign in again.
+            Tap SOS to call emergency services (112) right away. Only use this in
+            a real emergency.
           </Text>
 
           {/* Action Buttons: Cancel and SOS matching Image 2 */}

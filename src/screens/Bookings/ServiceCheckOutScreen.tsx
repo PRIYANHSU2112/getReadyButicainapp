@@ -18,7 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "ServiceCheckOut">;
 
 export const ServiceCheckOutScreen: React.FC<Props> = ({route, navigation}) => {
   const insets = useSafeAreaInsets();
-  const {bookingId} = route.params || {bookingId: "bk-101"};
+  const {bookingId} = route.params;
 
   // State to toggle between Home-2 (waiting for after photo) and Home-3 (after photo captured)
   const [hasAfterPhoto, setHasAfterPhoto] = useState(false);
@@ -181,14 +181,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAEDF1",
     alignItems: "center",
     justifyContent: "center",
   },
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: "#E11D48",
+    color: "#B02B58",
     fontWeight: "700",
   },
   headerTitle: {

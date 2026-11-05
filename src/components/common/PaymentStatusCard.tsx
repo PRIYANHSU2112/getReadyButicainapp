@@ -9,8 +9,8 @@ interface PaymentStatusCardProps {
 }
 
 export const PaymentStatusCard: React.FC<PaymentStatusCardProps> = React.memo(({
-  balanceAmount = 879,
-  advanceAmount = 1500,
+  balanceAmount = 0,
+  advanceAmount = 0,
   paymentMode = "Cash / UPI",
   style,
 }) => {
@@ -29,14 +29,16 @@ export const PaymentStatusCard: React.FC<PaymentStatusCardProps> = React.memo(({
         </View>
       </View>
 
-      <View style={styles.advancePaidBox}>
-        <View style={styles.checkCircle}>
-          <Text style={styles.checkIcon}>✓</Text>
+      {advanceAmount > 0 && (
+        <View style={styles.advancePaidBox}>
+          <View style={styles.checkCircle}>
+            <Text style={styles.checkIcon}>✓</Text>
+          </View>
+          <Text style={styles.advancePaidText}>
+            Advance of ₹{advanceAmount.toLocaleString("en-IN")} was paid at booking.
+          </Text>
         </View>
-        <Text style={styles.advancePaidText}>
-          Advance of ₹{advanceAmount.toLocaleString("en-IN")} was paid at booking.
-        </Text>
-      </View>
+      )}
     </View>
   );
 });

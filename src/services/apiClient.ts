@@ -14,11 +14,18 @@ export const BASE_URL = `http://${HOST}/api/v1`;
 const TIMEOUT_MS = 20000;
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public code?: string) {
+  constructor(message: string, public status: number, public code?: string, public retryAfterSec?: number) {
     super(message);
     this.name = "ApiError";
   }
 }
+
+// When the server rate-limits us (HTTP 429) background polling must back off, otherwise it
+// keeps hitting the limit and extends it. Only the gateway's generic limiter pauses polling;
+// a structured limit such as the per-number OTP cooldown says nothing about other endpoints.
+const DEFAULT_RATE_LIMIT_WAIT_S = 30;
+let rateLimitedUntil = 0;
+export const rateLimitRemainingMs = () => Math.max(0, rateLimitedUntil - Date.now());
 
 export interface PageMeta {
   page: number;
@@ -41,10 +48,12 @@ export const setTokens = async (next: AuthTokens | null) => {
   if (next) await tokenStorage.save(next);
   else await tokenStorage.clear();
 };
+
 export const restoreTokens = async () => {
   tokens = await tokenStorage.load();
   return tokens;
 };
+
 export const setSessionExpiredHandler = (fn: () => void) => { onSessionExpired = fn; };
 
 // Single shared refresh so parallel 401s don't trigger multiple refresh calls.
@@ -117,11 +126,21 @@ async function rawRequest(method: string, endpoint: string, body?: unknown, quer
     // Backend shape: { success:false, error:{ code, message, details:[{field,message}] } }
     const err = json?.error ?? json;
     const detail = Array.isArray(err?.details) && err.details[0]?.message;
+    let retryAfterSec: number | undefined;
+    if (res.status === 429) {
+      const header = Number(res.headers.get("Retry-After"));
+      retryAfterSec = Number.isFinite(header) && header > 0 ? Math.ceil(header) : undefined;
+      if (!err?.code) rateLimitedUntil = Date.now() + (retryAfterSec ?? DEFAULT_RATE_LIMIT_WAIT_S) * 1000;
+      if (__DEV__) console.warn(`[api] 429 ${method} ${endpoint} — retry after ${retryAfterSec ?? "?"}s`);
+    }
     const message =
       res.status === 429
-        ? err?.message ?? "Too many requests. Please wait a moment and try again."
+        ? err?.message ??
+          (retryAfterSec
+            ? `Too many requests. Please try again in ${retryAfterSec}s.`
+            : "Too many requests. Please wait a moment and try again.")
         : detail || err?.message || `Request failed (${res.status})`;
-    throw new ApiError(message, res.status, err?.code ?? json?.errorCode);
+    throw new ApiError(message, res.status, err?.code ?? json?.errorCode, retryAfterSec);
   }
   return json;
 }

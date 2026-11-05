@@ -51,7 +51,7 @@ export const PersonalInfoScreen: React.FC<Props> = ({navigation}) => {
   const [phone, setPhone] = useState(partner?.phoneNumber?.replace("+91 ", "") ?? "");
   const [isPhoneEditing, setIsPhoneEditing] = useState(false);
   const [showOtpSection, setShowOtpSection] = useState(false);
-  const [otpDigits, setOtpDigits] = useState<string[]>(["1", "1", "1", "1"]);
+  const [otpDigits, setOtpDigits] = useState<string[]>(() => Array(6).fill(""));
   const [languages, setLanguages] = useState<string[]>(partner?.languages ?? []);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -67,7 +67,7 @@ export const PersonalInfoScreen: React.FC<Props> = ({navigation}) => {
     const newDigits = [...otpDigits];
     newDigits[index] = cleaned;
     setOtpDigits(newDigits);
-    if (cleaned && index < 3) {
+    if (cleaned && index < 5) {
       otpInputs.current[index + 1]?.focus();
     }
   };
@@ -272,7 +272,7 @@ export const PersonalInfoScreen: React.FC<Props> = ({navigation}) => {
                 </View>
 
                 <View style={styles.otpBoxesRow}>
-                  {[0, 1, 2, 3].map(idx => (
+                  {[0, 1, 2, 3, 4, 5].map(idx => (
                     <TextInput
                       key={idx}
                       ref={ref => {
@@ -452,12 +452,12 @@ const styles = StyleSheet.create({
   },
   otpBoxesRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    maxWidth: 240,
+    justifyContent: "center",
+    gap: 6,
   },
   otpBox: {
-    width: 50,
-    height: 50,
+    width: 42,
+    height: 48,
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: "#CBD5E1",

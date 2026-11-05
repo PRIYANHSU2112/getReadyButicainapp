@@ -1,11 +1,12 @@
 import React from "react";
+import {palette} from "../../theme";
 import {
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
+import {BackButton} from "../common/BackButton";
 
 interface OnboardingHeaderProps {
   title?: string;
@@ -32,19 +33,12 @@ export const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
     <View style={[styles.container, {paddingTop: Math.max(insets.top + 6, 16)}]}>
       {/* Top Navigation Row matching Screenshots: < Profile Creation */}
       <View style={styles.topRow}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={onBackPress}
-          disabled={!showBack}
-          hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          style={styles.backRow}>
-          {showBack && <Text style={styles.backChevron}>‹</Text>}
+        <View style={styles.backRow}>
+          {showBack && <BackButton onPress={onBackPress} style={styles.backButton} />}
           <Text maxFontSizeMultiplier={1.3} style={styles.headerTitle}>
             {title}
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* Progress Info Row */}
@@ -84,12 +78,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  backChevron: {
-    fontSize: 22,
-    lineHeight: 22,
-    color: "#114B3E", // Deep emerald as in screenshots
-    fontWeight: "600",
-    marginRight: 8,
+  backButton: {
+    marginRight: 10,
   },
   headerTitle: {
     fontSize: 16.5,
@@ -112,7 +102,7 @@ const styles = StyleSheet.create({
   stepLabel: {
     fontSize: 11.5,
     fontWeight: "700",
-    color: "#114B3E", // Deep emerald
+    color: palette.brand.green, // Deep emerald
   },
   progressTrack: {
     height: 4,
@@ -123,7 +113,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#114B3E", // Deep emerald
+    backgroundColor: palette.brand.green, // Deep emerald
     borderRadius: 2,
   },
 });
